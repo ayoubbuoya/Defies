@@ -65,8 +65,30 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             const authMessage = `Sign this message to authenticate.\nTime: ${Date.now()}`;
             const signature = await wallet.signMessage(userAddress, authMessage);
 
-            // Send to backend...
-            // await fetch(...)
+            // ⬇️ Send signed message to backend
+            const res = await fetch("http://localhost:8080/auth/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    address: userAddress,
+                    message: authMessage,
+                    signature,
+                    wallet_type: walletId,
+                    pub_key: null // ← only needed for Cosmos-based wallets
+                })
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error("❌ Auth failed:", errorText);
+                alert("Auth failed: " + errorText);
+                return;
+            }
+
+            const { token } = await res.json();
+            console.log("✅ JWT Token:", token);
+            // optionally: store the token
+            localStorage.setItem("authToken", token);
 
             setWalletType(walletId);
             setAddress(userAddress);
