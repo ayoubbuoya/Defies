@@ -4,7 +4,8 @@ export const NETWORKS: NetworkConfig[] = [
     {
         chainId: 'pacific-1',
         name: 'Sei Mainnet',
-        rpcEndpoint: 'https://sei-rpc.polkachu.com',
+        rpcEndpoint: 'https://rpc.pacific-1.sei.io',
+        rpcEndpointEvm: 'https://evm-rpc.sei-apis.com',
         isTestnet: false,
         evmChainId: '0x531',
         currency: {
@@ -16,15 +17,16 @@ export const NETWORKS: NetworkConfig[] = [
     },
     {
         chainId: 'atlantic-2',
-        name: 'Sei Testnet',
-        rpcEndpoint: 'https://sei-testnet-rpc.polkachu.com',
+        name: 'Sei V2 Testnet',
+        rpcEndpoint: 'https://rpc-testnet.sei-apis.com',
+        rpcEndpointEvm: 'https://evm-rpc-testnet.sei-apis.com',
         isTestnet: true,
         evmChainId: '0x530',
         currency: {
-            name: 'SEI',
+            name: 'sei',
             symbol: 'SEI',
             decimals: 18,
         },
-        blockExplorer: 'https://seistream.app',
+        blockExplorer: "https://sei.explorers.guru/",
     },
 ]

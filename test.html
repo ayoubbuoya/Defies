@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SEI Wallet Balance Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 480px;
+            margin: 3rem auto;
+            padding: 1rem;
+        }
+
+        input,
+        button {
+            width: 100%;
+            padding: 0.5rem;
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        input {
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+
+        input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        #result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+
+        #result.success {
+            background-color: #e0ffe0;
+            color: #006400;
+        }
+
+        #result.error {
+            background-color: #ffe0e0;
+            color: #a00;
+        }
+
+        #result.warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .example-section {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #f5f5f5;
+            border-radius: 6px;
+        }
+
+        .example-address {
+            font-family: monospace;
+            font-size: 0.9rem;
+            background-color: #e9ecef;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 3px;
+            cursor: pointer;
+            word-break: break-all;
+        }
+
+        .example-address:hover {
+            background-color: #dee2e6;
+        }
+
+        .instruction {
+            margin: 1rem 0;
+            padding: 0.5rem;
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>SEI Wallet Balance Checker</h1>
+
+    <div class="instruction">
+        💡 <strong>Instructions:</strong> Enter your Sei EVM address below to check your balance. The address should
+        start with "0x" and be 42 characters long.
+    </div>
+
+    <label for="address">Enter Your Sei EVM Address:</label>
+    <input id="address" type="text" placeholder="0x742d35Cc6634C0532925a3b8D5C9e47B4b14b3D9" autocomplete="off" />
+    <button id="checkBtn">Check My Balance</button>
+    <div id="result"></div>
+
+    <div class="example-section">
+        <h3>Example Addresses (Click to test):</h3>
+        <div class="example-address" onclick="useAddress('0x742d35Cc6634C0532925a3b8D5C9e47B4b14b3D9')">
+            0x742d35Cc6634C0532925a3b8D5C9e47B4b14b3D9
+        </div>
+        <div class="example-address" onclick="useAddress('0x8ba1f109551bD432803012645Hac136c7d8A57e9')">
+            0x8ba1f109551bD432803012645Hac136c7d8A57e9
+        </div>
+        <div class="example-address" onclick="useAddress('0x1234567890123456789012345678901234567890')">
+            0x1234567890123456789012345678901234567890
+        </div>
+    </div>
+
+    <script>
+        const checkBtn = document.getElementById("checkBtn");
+        const addressInput = document.getElementById("address");
+        const resultDiv = document.getElementById("result");
+
+        const API_URL = "http://localhost:5001/ask";
+
+        function isValidAddress(addr) {
+            return /^0x[a-fA-F0-9]{40}$/.test(addr.trim());
+        }
+
+        function useAddress(address) {
+            addressInput.value = address;
+            addressInput.focus();
+        }
+
+        // Allow Enter key to trigger balance check
+        addressInput.addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                checkBtn.click();
+            }
+        });
+
+        checkBtn.addEventListener("click", async () => {
+            const address = addressInput.value.trim();
+            resultDiv.textContent = "";
+            resultDiv.className = "";
+
+            if (!isValidAddress(address)) {
+                resultDiv.textContent = "⚠️ Please enter a valid 0x Ethereum-style address (42 characters long).";
+                resultDiv.className = "error";
+                return;
+            }
+
+            checkBtn.disabled = true;
+            checkBtn.textContent = "Checking...";
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        prompt: `What is the balance of address ${address}?`,
+                        address: address,
+                        pubKey: "0x0"
+                    })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || "Unknown server error");
+                }
+
+                const data = await res.json();
+                const response = data.answer || data.output || "No response from server.";
+
+                // Check if the tool was actually called by looking for the console output
+                if (response.includes("0.0 ETH") && !response.includes("🔍")) {
+                    resultDiv.innerHTML = `
+                        <div>${response}</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: #856404;">
+                            ⚠️ Note: The agent may be hallucinating the balance result. Check your server logs to see if the tool was actually called.
+                        </div>
+                    `;
+                    resultDiv.className = "warning";
+                } else {
+                    resultDiv.textContent = response;
+                    resultDiv.className = "success";
+                }
+
+            } catch (err) {
+                resultDiv.textContent = "❌ " + err.message;
+                resultDiv.className = "error";
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = "Check My Balance";
+            }
+        });
+    </script>
+</body>
+
+</html>
