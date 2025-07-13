@@ -66,7 +66,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             const signature = await wallet.signMessage(userAddress, authMessage);
 
             // ⬇️ Send signed message to backend
-            const res = await fetch("http://localhost:8080/auth/verify", {
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+            const res = await fetch(`${backendUrl}/auth/verify`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -79,15 +80,12 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             });
 
             if (!res.ok) {
-                const errorText = await res.text();
-                console.error("❌ Auth failed:", errorText);
-                alert("Auth failed: " + errorText);
+                alert("Auth failed");
                 return;
             }
 
             const { token } = await res.json();
-            console.log("✅ JWT Token:", token);
-            // optionally: store the token
+            //store the token
             localStorage.setItem("authToken", token);
 
             setWalletType(walletId);
@@ -95,7 +93,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             setShowConnectionModal(false);
             setStrategy(wallet);
         } catch (err) {
-            console.error("Connection error", err);
+            alert("Auth failed");
         } finally {
             setIsConnecting(false);
         }
@@ -103,6 +101,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
 
     const disconnectWallet = () => {
+        localStorage.removeItem("authToken");
         setStrategy(null)
         setAddress(null)
         setWalletType(null)
