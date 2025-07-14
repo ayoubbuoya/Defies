@@ -11,6 +11,7 @@ export interface NetworkConfig {
     chainId: string
     name: string
     rpcEndpoint: string
+    rpcEndpointEvm: string
     isTestnet: boolean
     evmChainId: string
     currency: {
@@ -34,5 +35,17 @@ export interface WalletContextType {
     disconnectWallet: () => void
     setShowConnectionModal: (show: boolean) => void
     switchNetwork: (network: NetworkConfig) => Promise<void>
-    sendTransaction: (recipientAddress: string, amount: any[]) => Promise<any>
+    sendTransaction: (p: TxParams) => Promise<any>
 }
+
+export interface WalletStrategy {
+    isInstalled(): boolean;
+    connect(selectedNetwork: NetworkConfig): Promise<string>; // returns address
+    signMessage(address: string, message: string): Promise<string>;
+    switchNetwork(network: NetworkConfig): Promise<string>; // returns address
+    sendTransaction(p: TxParams): Promise<any>; // returns transaction result
+}
+
+export type TxParams =
+    | { type?: "native"; recipient: string; amount: string }                // default
+    | { type: "contract"; contract: string; abi: any[]; method: string; args: any[]; value?: string };
