@@ -1,5 +1,6 @@
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { env } from "../config/env.js";
 
 let fetchFn;
 
@@ -11,12 +12,12 @@ if (typeof globalThis.fetch !== "function") {
 }
 
 export default class GroqLLM extends BaseChatModel {
-  constructor({ apiKey, modelName = "llama-3.3-70b-versatile", temperature = 0 }) {
+  constructor({ apiKey, modelName, temperature}) {
     super({});
     this.apiKey = apiKey;
     this.modelName = modelName;
     this.temperature = temperature;
-    this.baseURL = "https://api.groq.com/openai/v1/chat/completions";
+    this.baseURL = env.groqUrl;
   }
 
   _llmType() {
