@@ -1,40 +1,45 @@
-import GroqLLM from "../llm/GeminiFlashLLM.js";
+import GroqLLM from "../llm/GroqLLM.js";
 import { initializeAgentExecutorWithOptions } from "langchain/agents";
-import { checkBalanceTool } from "../tools/checkBalanceTool.js";
+import { mcpBalanceTool } from "../tools/mcpBalanceTool.js";
 import { env } from "../config/env.js";
 
 const llm = new GroqLLM({
-  apiKey: env.groqKey, // Add GROQ_API_KEY to your .env file
-  modelName: "llama-3.3-70b-versatile",
-  temperature: 0,
+  apiKey: env.groqKey,
+  modelName: env.groqModel,
+  temperature: env.groqTemperature,
 });
 
 export async function runAgent(prompt, ctx) {
-  console.log("🚀 Processing request...");
+  console.log("🚀 Starting agent with MCP server connection...");
   
   const executor = await initializeAgentExecutorWithOptions(
-    [checkBalanceTool],
+    [mcpBalanceTool], // Only the MCP-based balance tool
     llm,
     { 
       agentType: "zero-shot-react-description", 
-      verbose: false,
-      maxIterations: 3
+      verbose: true, // Enable to see the tool calls
+      maxIterations: 4
     }
   );
 
-  const systemCtx = `You are a helpful assistant for Sei EVM blockchain queries. The user's Sei EVM address is ${ctx.address}. Their public key is ${ctx.pubKey}.
+  const systemCtx = `You are a helpful assistant for Sei EVM blockchain queries. 
+The user's Sei EVM address is ${ctx.address}. 
+Their public key is ${ctx.pubKey}.
 
-You have access to the following tools:
-- check_balance: Use this to check the ETH balance of any Sei EVM address. Always use this tool when asked about balances.
+You have access to the get_balance tool which connects to an MCP server to check SEI balances.
+When checking balances, use the tool with the address parameter.
 
-When the user asks about balances, account information, or wallet details, you MUST use the check_balance tool first before providing any response.
+Format your responses clearly and include the actual balance information from the MCP server.`;
 
-Format your responses clearly and include the actual balance information from the tool.`;
-
-  const result = await executor.call({ 
-    input: `${systemCtx}\n\nUser: ${prompt}` 
-  });
-
-  console.log("✅ Request completed");
-  return result.output;
+  try {
+    const result = await executor.call({ 
+      input: `${systemCtx}\n\nUser: ${prompt}` 
+    });
+    
+    console.log("✅ Agent completed successfully");
+    return result.output;
+  } catch (error) {
+    console.error("❌ Agent error:", error.message);
+    return `Sorry, I encountered an error: ${error.message}`;
+  }
 }

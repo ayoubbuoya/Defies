@@ -12,6 +12,7 @@
     "@langchain/core": "^0.3.62",
     "@langchain/google-vertexai": "^0.2.14",
     "@langchain/openai": "^0.5.18",
+    "@modelcontextprotocol/sdk": "^1.15.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "ethers": "^6.11.1",

@@ -1,3 +1,5 @@
 target
-cargo.lock
+Cargo.lock
+Cargo.lock
+*.lock
 .env
