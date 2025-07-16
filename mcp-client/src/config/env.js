@@ -9,4 +9,5 @@ export const env = {
   groqModel: process.env.GROQ_MODEL     || "llama-3.3-70b-versatile",
   groqTemperature: parseFloat(process.env.GROQ_TEMPERATURE) || 0,
   defaultNetwork: process.env.SEI_NETWORK || "sei-testnet",
+  llmProvider: process.env.LLM_PROVIDER || "groq",
 };
