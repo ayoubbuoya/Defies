@@ -8,17 +8,16 @@
     "dev": "node --watch src/index.js"
   },
   "dependencies": {
-    "@google-cloud/vertexai": "^1.10.0",
     "@langchain/core": "^0.3.62",
-    "@langchain/google-vertexai": "^0.2.14",
-    "@langchain/openai": "^0.5.18",
+    "@langchain/groq": "^0.2.3",
     "@modelcontextprotocol/sdk": "^1.15.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "ethers": "^6.11.1",
     "express": "^4.19.2",
-    "langchain": "^0.2.20",
+    "langchain": "^0.3.30",
     "node-fetch": "^3.3.2",
-    "openai": "^4.25.0"
+    "openai": "^4.25.0",
+    "zod": "^3.22.4"
   }
 }
