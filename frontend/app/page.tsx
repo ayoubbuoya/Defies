@@ -6,6 +6,7 @@ import { TopNavigation } from "@/components/top-navigation"
 import { HomePage } from "@/components/home-page"
 import { ChatInterface } from "@/components/chat-interface"
 import { WalletConnectionModal } from "@/components/wallet-connection-modal"
+import { EnhancedLiquidityProvider } from "@/components/enhanced-liquidity-provider"
 
 export default function Home() {
   const [activeView, setActiveView] = useState("home")
@@ -16,6 +17,8 @@ export default function Home() {
         return <HomePage setActiveView={setActiveView} />
       case "chat":
         return <ChatInterface />
+      case "liquidity":
+        return <EnhancedLiquidityProvider />
       default:
         return <HomePage setActiveView={setActiveView} />
     }
