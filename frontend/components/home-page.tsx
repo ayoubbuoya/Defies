@@ -3,7 +3,7 @@
 import { useWallet } from "@/contexts/wallet/wallet-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Zap, Wallet, Bot, ArrowRight, Sparkles } from "lucide-react"
+import { Zap, Wallet, Bot, ArrowRight, Sparkles, Droplets, TrendingUp } from "lucide-react"
 
 interface HomePageProps {
   setActiveView: (view: string) => void
@@ -77,13 +77,13 @@ export function HomePage({ setActiveView }: HomePageProps) {
 
       {/* Features Section */}
       <div className="py-20 relative">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <h3 className="text-4xl font-bold text-white mb-4">What You Can Do</h3>
             <p className="text-xl text-gray-400">Simple and powerful Web3 AI assistance</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="bg-gray-900/80 border-gray-800 hover:border-gray-700 cursor-pointer transition-all duration-300 hover:scale-105">
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -101,6 +101,22 @@ export function HomePage({ setActiveView }: HomePageProps) {
                 </div>
                 <h4 className="text-2xl font-bold text-white mb-4">Wallet Integration</h4>
                 <p className="text-gray-400 text-lg">Connect your Sei wallet for personalized assistance</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="bg-gray-900/80 border-gray-800 hover:border-gray-700 cursor-pointer transition-all duration-300 hover:scale-105 md:col-span-2 lg:col-span-1"
+              onClick={() => setActiveView("liquidity")}
+            >
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <TrendingUp className="w-8 h-8 text-white" />
+                </div>
+                <h4 className="text-2xl font-bold text-white mb-4">Concentrated Liquidity Advisor</h4>
+                <p className="text-gray-400 text-lg">
+                  Get AI-powered advice on optimal price ranges for concentrated liquidity positions to maximize your
+                  returns
+                </p>
               </CardContent>
             </Card>
           </div>
