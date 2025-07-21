@@ -2,6 +2,7 @@
 target/
 Cargo.lock
 *.lock
+backend/
 
 # Environment variables
 .env
