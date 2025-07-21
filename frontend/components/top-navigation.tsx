@@ -88,8 +88,8 @@ export function TopNavigation({ activeView, setActiveView }: TopNavigationProps)
                   variant={activeView === item.id ? "secondary" : "ghost"}
                   onClick={() => setActiveView(item.id)}
                   className={`${activeView === item.id
-                      ? "bg-gray-800 text-white border border-gray-700 shadow-lg"
-                      : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                    ? "bg-gray-800 text-white border border-gray-700 shadow-lg"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/50"
                     } px-4 py-2 transition-all duration-200`}
                 >
                   <item.icon className="w-4 h-4 mr-2" />
@@ -205,8 +205,8 @@ export function TopNavigation({ activeView, setActiveView }: TopNavigationProps)
                             variant={activeView === item.id ? "secondary" : "ghost"}
                             onClick={() => handleNavItemClick(item.id)}
                             className={`w-full justify-start ${activeView === item.id
-                                ? "bg-gray-800 text-white border border-gray-700"
-                                : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                              ? "bg-gray-800 text-white border border-gray-700"
+                              : "text-gray-400 hover:text-white hover:bg-gray-800/50"
                               } h-12 px-4 transition-all duration-200`}
                           >
                             <item.icon className="w-5 h-5 mr-3" />

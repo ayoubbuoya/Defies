@@ -1,17 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { WalletProvider } from "@/contexts/wallet/WalletProvider"
 import { TopNavigation } from "@/components/top-navigation"
 import { HomePage } from "@/components/home-page"
 import { ChatInterface } from "@/components/chat-interface"
-import { WalletConnectionModal } from "@/components/wallet-connection-modal"
 import { EnhancedLiquidityProvider } from "@/components/enhanced-liquidity-provider"
+import { Footer } from "@/components/footer"
 
-export default function Home() {
+export default function Page() {
+
   const [activeView, setActiveView] = useState("home")
-
-  const renderContent = () => {
+  const renderActiveView = () => {
     switch (activeView) {
       case "home":
         return <HomePage setActiveView={setActiveView} />
@@ -25,12 +24,10 @@ export default function Home() {
   }
 
   return (
-    <WalletProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-zinc-900">
-        <TopNavigation activeView={activeView} setActiveView={setActiveView} />
-        <main className="container mx-auto px-6 py-8">{renderContent()}</main>
-        <WalletConnectionModal />
-      </div>
-    </WalletProvider>
+    <div className="min-h-screen bg-gray-950 flex flex-col">
+      <TopNavigation activeView={activeView} setActiveView={setActiveView} />
+      <main className="flex-1">{renderActiveView()}</main>
+      {activeView === "home" && <Footer />}
+    </div>
   )
 }

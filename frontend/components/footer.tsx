@@ -87,13 +87,13 @@ export function Footer() {
     ]
 
     return (
-        <footer className="border-t border-gray-800 bg-gray-950/95 backdrop-blur-md">
+        <footer className="bg-gray-950 border-t border-gray-800/50">
             <div className="container mx-auto px-6 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {/* Brand Section */}
                     <div className="space-y-4">
                         <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                            <div className="relative w-10 h-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
                                 <Zap className="w-5 h-5 text-white" />
                                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse flex items-center justify-center">
                                     <Sparkles className="w-1.5 h-1.5 text-white" />
@@ -219,7 +219,7 @@ export function Footer() {
                 </div>
 
                 {/* Bottom Section */}
-                <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <div className="border-t border-gray-800/50 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                     <p className="text-gray-500 text-sm">
                         © {currentYear} SeiMind. All rights reserved. Built with ❤️ for the Web3 community.
                     </p>
