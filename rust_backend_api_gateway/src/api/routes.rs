@@ -1,6 +1,22 @@
+// src/api/routes.rs
+
+// Add get_pools_handler to your use statement
 use actix_web::web;
-use crate::api::handlers::verify_signature;
+use crate::api::handlers::{
+    verify_signature, get_graph_data_handler, prompt_handler, get_pools_handler
+}; // <-- Add it here
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
+    // Authentication routes
     cfg.service(web::scope("/auth").service(verify_signature));
+
+    // Data routes for graphs and pools
+    cfg.service(
+        web::scope("/data")
+            .service(get_graph_data_handler)
+            .service(get_pools_handler), // <-- Add the new handler here
+    );
+    
+    // Agent/LLM routes
+    cfg.service(web::scope("/agent").service(prompt_handler));
 }
