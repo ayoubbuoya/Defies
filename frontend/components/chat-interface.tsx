@@ -7,14 +7,40 @@ import { useWallet } from "@/contexts/wallet/wallet-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Wallet, Send, User, Sparkles, Mic, MicOff, Stars, Brain, ExternalLink } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import {
+  Wallet,
+  Send,
+  User,
+  Sparkles,
+  Mic,
+  MicOff,
+  Stars,
+  Brain,
+  ExternalLink,
+  ChevronRight,
+  Clock,
+  DollarSign,
+  TrendingUp,
+  Shield,
+} from "lucide-react"
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition"
+
+interface LiquidityFormData {
+  pair?: string
+  riskProfile?: string
+  amount?: string
+  returnPreference?: string
+  investmentDuration?: string
+}
 
 interface Message {
   id: string
   type: "user" | "ai"
   content: string
   timestamp: Date
+  responseType?: "normal" | "show_form" | "show_position"
   liquidityAction?: {
     pair: string
     dex: string
@@ -68,6 +94,7 @@ export function ChatInterface() {
         content:
           "Welcome to SeiMind! I'm your AI-powered Web3 intelligence assistant. I can help you navigate the blockchain world, answer questions about cryptocurrencies, DeFi, and provide insights into the Sei ecosystem. I can also help you set up liquidity positions with optimal parameters. How can I assist you today?",
         timestamp: new Date(),
+        responseType: "normal",
       }
       setMessages([welcomeMessage])
     }
@@ -91,6 +118,62 @@ export function ChatInterface() {
     router.push(`/liquidity?${params.toString()}`)
   }
 
+  const handleFormSubmit = async (formData: LiquidityFormData, messageId: string) => {
+    // Add user message showing form submission
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: "user",
+      content: `Form submitted with preferences: ${Object.entries(formData)
+        .filter(([_, value]) => value)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(", ")}`,
+      timestamp: new Date(),
+      responseType: "normal",
+    }
+
+    setMessages((prev) => [...prev, userMessage])
+    setIsTyping(true)
+
+    // Simulate API call to AI agent with form data
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    // Simulate AI response with position recommendation
+    const aiResponse: Message = {
+      id: Date.now().toString(),
+      type: "ai",
+      content: `🎯 **Perfect Match Found!**
+
+Based on your preferences, I've created a personalized liquidity strategy:
+
+• **Pair**: ${formData.pair || "SEI-USDC"}
+• **Risk Level**: ${formData.riskProfile || "Medium"} risk
+• **Investment**: $${formData.amount || "1,000"}
+• **Strategy**: ${formData.returnPreference || "Stable"} returns
+• **Duration**: ${formData.investmentDuration || "3-6 months"}
+
+**Recommended Position:**
+• **DEX**: Sailor V2 (best liquidity)
+• **Fee Tier**: 0.3% (optimal for your risk profile)
+• **Price Range**: $0.008 - $0.015
+• **Expected APR**: 12.5%
+• **Estimated Monthly Earnings**: $10.42
+
+This strategy is optimized for your preferences and current market conditions.`,
+      timestamp: new Date(),
+      responseType: "show_position",
+      liquidityAction: {
+        pair: (formData.pair || "SEI-USDC").replace("/", "-"),
+        dex: "sailor-v2",
+        fee: 0.3,
+        minPrice: 0.008,
+        maxPrice: 0.015,
+      },
+    }
+
+    setMessages((prev) => [...prev, aiResponse])
+    setIsTyping(false)
+  }
+
   const generateAIResponse = (userInput: string): Message => {
     const input = userInput.toLowerCase()
 
@@ -100,6 +183,7 @@ export function ChatInterface() {
         type: "ai",
         content: "Hello! I'm SeiMind, your AI companion for Web3 intelligence. What would you like to explore today?",
         timestamp: new Date(),
+        responseType: "normal",
       }
     }
 
@@ -108,15 +192,9 @@ export function ChatInterface() {
         id: Date.now().toString(),
         type: "ai",
         content:
-          "🌊 I can help you set up a liquidity position! Based on current market conditions, I recommend:\n\n• **SEI/USDC pair** on Sailor V2\n• **0.3% fee tier** (highest volume)\n• **Price range**: $0.008 - $0.015 (±25% from current)\n• **Estimated APR**: 12.5%\n\nWould you like me to set this up for you with these optimal parameters?",
+          "🌊 I can help you set up the perfect liquidity position! Let me gather some information about your preferences to create a personalized recommendation that matches your investment goals and risk tolerance.",
         timestamp: new Date(),
-        liquidityAction: {
-          pair: "SEI-USDC",
-          dex: "sailor-v2",
-          fee: 0.3,
-          minPrice: 0.008,
-          maxPrice: 0.015,
-        },
+        responseType: "show_form",
       }
     }
 
@@ -127,6 +205,7 @@ export function ChatInterface() {
         content:
           "📊 SEI/USDC is one of the most liquid pairs on Sei Network! Here's what I recommend:\n\n• **Current Price**: $0.0105\n• **24h Volume**: $3.8M\n• **Best DEX**: Sailor V2 (lowest slippage)\n• **Optimal Fee Tier**: 0.3%\n• **Suggested Range**: $0.009 - $0.013\n\nThis range captures 80% of recent price action. Ready to provide liquidity?",
         timestamp: new Date(),
+        responseType: "show_position",
         liquidityAction: {
           pair: "SEI-USDC",
           dex: "sailor-v2",
@@ -144,6 +223,7 @@ export function ChatInterface() {
         content:
           "🌾 Great DeFi opportunities on Sei right now:\n\n• **Liquidity Providing**: 8-15% APR\n• **SEI Staking**: 8.5% APR (Low risk)\n• **Lending**: 6.8% APR\n\nFor liquidity providing, I recommend starting with SEI/USDC - it's stable and profitable. Want me to set up an optimal position?",
         timestamp: new Date(),
+        responseType: "show_position",
         liquidityAction: {
           pair: "SEI-USDC",
           dex: "sailor-v2",
@@ -161,6 +241,7 @@ export function ChatInterface() {
       content:
         "🤔 I understand you're asking about Web3 and DeFi. I can help you with:\n\n• 📊 Market analysis and insights\n• 🌊 Liquidity provision strategies\n• 🔄 Token swaps and trading\n• 🌾 DeFi opportunities and staking\n• 📈 Portfolio optimization\n\nCould you be more specific about what you'd like to know or do?",
       timestamp: new Date(),
+      responseType: "normal",
     }
   }
 
@@ -172,6 +253,7 @@ export function ChatInterface() {
       type: "user",
       content: inputValue.trim(),
       timestamp: new Date(),
+      responseType: "normal",
     }
 
     setMessages((prev) => [...prev, userMessage])
@@ -190,6 +272,52 @@ export function ChatInterface() {
       e.preventDefault()
       handleSend()
     }
+  }
+
+  const renderLiquidityForm = (messageId: string) => {
+    return (
+      <Card className="mt-4 bg-slate-800/50 border-slate-700/50">
+        <CardContent className="p-6 space-y-6">
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-bold text-white">Liquidity Preference Form</h3>
+            <p className="text-sm text-gray-400">
+              Help us create the perfect position for you. All questions are optional.
+            </p>
+          </div>
+
+          <LiquidityPreferenceForm
+            onSubmit={(formData) => handleFormSubmit(formData, messageId)}
+            onSkip={() => {
+              // Handle skip - could send a message or just continue with defaults
+              const skipMessage: Message = {
+                id: Date.now().toString(),
+                type: "user",
+                content: "I'll skip the form and go with default recommendations.",
+                timestamp: new Date(),
+                responseType: "normal",
+              }
+              setMessages((prev) => [...prev, skipMessage])
+            }}
+          />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const renderPositionAction = (message: Message) => {
+    if (!message.liquidityAction) return null
+
+    return (
+      <div className="mt-4 pt-4 border-t border-gray-600/30">
+        <Button
+          onClick={() => handleLiquidityAction(message.liquidityAction)}
+          className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white text-sm px-4 py-2 rounded-lg shadow-lg hover:scale-105 transition-all duration-300"
+        >
+          <ExternalLink className="w-4 h-4 mr-2" />
+          Set Up Liquidity Position
+        </Button>
+      </div>
+    )
   }
 
   if (!browserSupportsSpeechRecognition) {
@@ -312,18 +440,11 @@ export function ChatInterface() {
                   >
                     <p className="whitespace-pre-line leading-relaxed text-base">{message.content}</p>
 
-                    {/* Liquidity Action Button */}
-                    {message.liquidityAction && (
-                      <div className="mt-4 pt-4 border-t border-gray-600/30">
-                        <Button
-                          onClick={() => handleLiquidityAction(message.liquidityAction)}
-                          className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white text-sm px-4 py-2 rounded-lg shadow-lg hover:scale-105 transition-all duration-300"
-                        >
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          Set Up Liquidity Position
-                        </Button>
-                      </div>
-                    )}
+                    {/* Render Form if responseType is "show_form" */}
+                    {message.responseType === "show_form" && renderLiquidityForm(message.id)}
+
+                    {/* Render Position Action if responseType is "show_position" */}
+                    {message.responseType === "show_position" && renderPositionAction(message)}
 
                     <div className="text-xs text-gray-400 mt-4 flex items-center">
                       <Stars className="w-3 h-3 mr-1" />
@@ -420,6 +541,178 @@ export function ChatInterface() {
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+// Separate component for the liquidity preference form
+function LiquidityPreferenceForm({
+  onSubmit,
+  onSkip,
+}: {
+  onSubmit: (formData: LiquidityFormData) => void
+  onSkip: () => void
+}) {
+  const [formData, setFormData] = useState<LiquidityFormData>({})
+
+  const handleSubmit = () => {
+    onSubmit(formData)
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Trading Pair Preference */}
+      <div className="space-y-3">
+        <div className="flex items-center space-x-2">
+          <TrendingUp className="w-5 h-5 text-cyan-400" />
+          <label className="text-white font-medium">What pair(s) do you prefer?</label>
+          <Badge variant="secondary" className="text-xs">
+            Optional
+          </Badge>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {["SEI/USDC", "ATOM/SEI", "WETH/USDC", "SEI/WBTC"].map((pair) => (
+            <Button
+              key={pair}
+              variant={formData.pair === pair ? "default" : "outline"}
+              onClick={() => setFormData((prev) => ({ ...prev, pair }))}
+              className={`${formData.pair === pair
+                  ? "bg-cyan-500 hover:bg-cyan-600"
+                  : "border-gray-600 text-gray-300 hover:bg-gray-700"
+                }`}
+            >
+              {pair}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Risk Profile */}
+      <div className="space-y-3">
+        <div className="flex items-center space-x-2">
+          <Shield className="w-5 h-5 text-cyan-400" />
+          <label className="text-white font-medium">What's your risk profile?</label>
+          <Badge variant="secondary" className="text-xs">
+            Optional
+          </Badge>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { value: "low", label: "Low Risk", desc: "Stable, wide ranges" },
+            { value: "medium", label: "Medium Risk", desc: "Balanced approach" },
+            { value: "high", label: "High Risk", desc: "Narrow ranges, higher APR" },
+          ].map((risk) => (
+            <Button
+              key={risk.value}
+              variant={formData.riskProfile === risk.value ? "default" : "outline"}
+              onClick={() => setFormData((prev) => ({ ...prev, riskProfile: risk.value }))}
+              className={`flex flex-col h-auto p-4 ${formData.riskProfile === risk.value
+                  ? "bg-cyan-500 hover:bg-cyan-600"
+                  : "border-gray-600 text-gray-300 hover:bg-gray-700"
+                }`}
+            >
+              <span className="font-medium">{risk.label}</span>
+              <span className="text-xs opacity-70">{risk.desc}</span>
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Investment Amount */}
+      <div className="space-y-3">
+        <div className="flex items-center space-x-2">
+          <DollarSign className="w-5 h-5 text-cyan-400" />
+          <label className="text-white font-medium">Available amount to invest?</label>
+          <Badge variant="secondary" className="text-xs">
+            Optional
+          </Badge>
+        </div>
+        <Input
+          type="text"
+          placeholder="e.g., 1000"
+          value={formData.amount || ""}
+          onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value }))}
+          className="bg-gray-800 border-gray-600 text-white"
+        />
+      </div>
+
+      {/* Return Preference */}
+      <div className="space-y-3">
+        <div className="flex items-center space-x-2">
+          <TrendingUp className="w-5 h-5 text-cyan-400" />
+          <label className="text-white font-medium">Do you prefer stable returns or volatile gains?</label>
+          <Badge variant="secondary" className="text-xs">
+            Optional
+          </Badge>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { value: "stable", label: "Stable Returns", desc: "Consistent, predictable" },
+            { value: "volatile", label: "Volatile Gains", desc: "Higher potential, more risk" },
+          ].map((pref) => (
+            <Button
+              key={pref.value}
+              variant={formData.returnPreference === pref.value ? "default" : "outline"}
+              onClick={() => setFormData((prev) => ({ ...prev, returnPreference: pref.value }))}
+              className={`flex flex-col h-auto p-4 ${formData.returnPreference === pref.value
+                  ? "bg-cyan-500 hover:bg-cyan-600"
+                  : "border-gray-600 text-gray-300 hover:bg-gray-700"
+                }`}
+            >
+              <span className="font-medium">{pref.label}</span>
+              <span className="text-xs opacity-70">{pref.desc}</span>
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Investment Duration */}
+      <div className="space-y-3">
+        <div className="flex items-center space-x-2">
+          <Clock className="w-5 h-5 text-cyan-400" />
+          <label className="text-white font-medium">How long will you invest?</label>
+          <Badge variant="secondary" className="text-xs">
+            Optional
+          </Badge>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {["1-3 months", "3-6 months", "6-12 months", "1+ years"].map((duration) => (
+            <Button
+              key={duration}
+              variant={formData.investmentDuration === duration ? "default" : "outline"}
+              onClick={() => setFormData((prev) => ({ ...prev, investmentDuration: duration }))}
+              className={`${formData.investmentDuration === duration
+                  ? "bg-cyan-500 hover:bg-cyan-600"
+                  : "border-gray-600 text-gray-300 hover:bg-gray-700"
+                }`}
+            >
+              {duration}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex space-x-3 pt-4">
+        <Button
+          onClick={handleSubmit}
+          className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600"
+        >
+          <ChevronRight className="w-4 h-4 mr-2" />
+          Submit Preferences
+        </Button>
+        <Button
+          onClick={onSkip}
+          variant="outline"
+          className="border-gray-600 text-gray-300 hover:bg-gray-700 bg-transparent"
+        >
+          Skip Form
+        </Button>
+      </div>
+
+      <p className="text-xs text-gray-500 text-center">
+        🔒 Your preferences are processed locally and never stored. We respect your privacy.
+      </p>
     </div>
   )
 }

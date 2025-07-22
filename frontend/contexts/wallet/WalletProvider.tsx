@@ -21,6 +21,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     const isConnected = !!strategy && !!walletType
 
     useEffect(() => {
+        console.log("Restoring wallet connection...")
         // ✅ NEW effect – restore previous wallet connection
         const restoreWallet = async () => {
             setIsRestoring(true);

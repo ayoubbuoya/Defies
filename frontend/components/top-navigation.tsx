@@ -8,6 +8,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Wallet, LogOut, Copy, Home, MessageSquare, Sparkles, Droplets, Menu } from "lucide-react"
 import { useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+
 
 interface TopNavigationProps {
   activeView: string
@@ -19,6 +22,9 @@ export function TopNavigation({ activeView, setActiveView }: TopNavigationProps)
   const [copied, setCopied] = useState(false)
   const [logoError, setLogoError] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const pathname = usePathname()
+  const isHomePage = pathname === "/"
 
   const copyAddress = async () => {
     if (address) {
@@ -35,7 +41,7 @@ export function TopNavigation({ activeView, setActiveView }: TopNavigationProps)
   const navigationItems = [
     { id: "home", label: "Home", icon: Home },
     { id: "chat", label: "AI Chat", icon: MessageSquare },
-    { id: "liquidity", label: "Liquidity", icon: Droplets },
+    { id: "pools", label: "Pools", icon: Droplets },
   ]
 
   const handleNavItemClick = (viewId: string) => {
@@ -81,21 +87,33 @@ export function TopNavigation({ activeView, setActiveView }: TopNavigationProps)
             </div>
 
             {/* Navigation Items */}
+            {/* Navigation Items */}
             <nav className="flex items-center space-x-2">
-              {navigationItems.map((item) => (
-                <Button
-                  key={item.id}
-                  variant={activeView === item.id ? "secondary" : "ghost"}
-                  onClick={() => setActiveView(item.id)}
-                  className={`${activeView === item.id
-                    ? "bg-gray-800 text-white border border-gray-700 shadow-lg"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/50"
-                    } px-4 py-2 transition-all duration-200`}
-                >
-                  <item.icon className="w-4 h-4 mr-2" />
-                  {item.label}
-                </Button>
-              ))}
+              {navigationItems.map((item) => {
+                const isActive = activeView === item.id
+                const button = (
+                  <Button
+                    key={item.id}
+                    variant={isActive ? "secondary" : "ghost"}
+                    onClick={() => isHomePage && setActiveView(item.id)}
+                    className={`${isActive
+                      ? "bg-gray-800 text-white border border-gray-700 shadow-lg"
+                      : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                      } px-4 py-2 transition-all duration-200`}
+                  >
+                    <item.icon className="w-4 h-4 mr-2" />
+                    {item.label}
+                  </Button>
+                )
+
+                return isHomePage ? (
+                  <div key={item.id}>{button}</div>
+                ) : (
+                  <Link key={item.id} href={`/?view=${item.id}`}>
+                    {button}
+                  </Link>
+                )
+              })}
             </nav>
           </div>
 
@@ -199,23 +217,34 @@ export function TopNavigation({ activeView, setActiveView }: TopNavigationProps)
                     <div className="space-y-3">
                       <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider">Navigation</h3>
                       <div className="space-y-2">
-                        {navigationItems.map((item) => (
-                          <Button
-                            key={item.id}
-                            variant={activeView === item.id ? "secondary" : "ghost"}
-                            onClick={() => handleNavItemClick(item.id)}
-                            className={`w-full justify-start ${activeView === item.id
-                              ? "bg-gray-800 text-white border border-gray-700"
-                              : "text-gray-400 hover:text-white hover:bg-gray-800/50"
-                              } h-12 px-4 transition-all duration-200`}
-                          >
-                            <item.icon className="w-5 h-5 mr-3" />
-                            {item.label}
-                          </Button>
-                        ))}
+                        {navigationItems.map((item) => {
+                          const isActive = activeView === item.id
+
+                          const button = (
+                            <Button
+                              variant={isActive ? "secondary" : "ghost"}
+                              onClick={() => isHomePage ? handleNavItemClick(item.id) : undefined}
+                              className={`w-full justify-start ${isActive
+                                ? "bg-gray-800 text-white border border-gray-700"
+                                : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                                } h-12 px-4 transition-all duration-200`}
+                            >
+                              <item.icon className="w-5 h-5 mr-3" />
+                              {item.label}
+                            </Button>
+                          )
+
+                          // If on homepage, just a button with onClick, else wrap with Link
+                          return isHomePage ? (
+                            <div key={item.id}>{button}</div>
+                          ) : (
+                            <Link key={item.id} href={`/?view=${item.id}`} onClick={() => setMobileMenuOpen(false)}>
+                              {button}
+                            </Link>
+                          )
+                        })}
                       </div>
                     </div>
-
                     {/* Wallet Section */}
                     <div className="space-y-3">
                       <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider">Wallet & Network</h3>
