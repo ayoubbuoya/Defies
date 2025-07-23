@@ -7,6 +7,7 @@ import { HomePage } from "@/components/home-page"
 import { ChatInterface } from "@/components/chat-interface"
 import { EnhancedLiquidityProvider } from "@/components/enhanced-liquidity-provider"
 import { Footer } from "@/components/footer"
+import { PoolsPage } from "@/components/pools-page"
 
 export default function Page() {
   const searchParams = useSearchParams()
@@ -29,7 +30,7 @@ export default function Page() {
       case "chat":
         return <ChatInterface />
       case "pools":
-        return <EnhancedLiquidityProvider />
+        return <PoolsPage />
       default:
         return <HomePage setActiveView={setActiveView} />
     }

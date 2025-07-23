@@ -6,18 +6,15 @@ import { useRouter } from "next/navigation"
 import { useWallet } from "@/contexts/wallet/wallet-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
   Wallet,
   Send,
   User,
-  Sparkles,
   Mic,
   MicOff,
   Stars,
-  Brain,
   ExternalLink,
   ChevronRight,
   Clock,
@@ -42,13 +39,9 @@ interface Message {
   timestamp: Date
   responseType?: "normal" | "show_form" | "show_position"
   liquidityAction?: {
-    pair: string
-    dex: string
-    fee: number
+    pool: string
     minPrice: number
     maxPrice: number
-    amount0?: string
-    amount1?: string
   }
 }
 
@@ -104,16 +97,11 @@ export function ChatInterface() {
     if (!liquidityAction) return
 
     const params = new URLSearchParams({
-      pair: liquidityAction.pair,
-      dex: liquidityAction.dex,
-      fee: liquidityAction.fee.toString(),
+      pool: liquidityAction.pool,
       minPrice: liquidityAction.minPrice.toString(),
       maxPrice: liquidityAction.maxPrice.toString(),
       from: "chat",
     })
-
-    if (liquidityAction.amount0) params.set("amount0", liquidityAction.amount0)
-    if (liquidityAction.amount1) params.set("amount1", liquidityAction.amount1)
 
     router.push(`/liquidity?${params.toString()}`)
   }
@@ -132,6 +120,7 @@ export function ChatInterface() {
     }
 
     setMessages((prev) => [...prev, userMessage])
+    setInputValue("")
     setIsTyping(true)
 
     // Simulate API call to AI agent with form data
@@ -162,9 +151,7 @@ This strategy is optimized for your preferences and current market conditions.`,
       timestamp: new Date(),
       responseType: "show_position",
       liquidityAction: {
-        pair: (formData.pair || "SEI-USDC").replace("/", "-"),
-        dex: "sailor-v2",
-        fee: 0.3,
+        pool: (formData.pair || "SEI-USDC").replace("/", "-"),
         minPrice: 0.008,
         maxPrice: 0.015,
       },
@@ -207,9 +194,7 @@ This strategy is optimized for your preferences and current market conditions.`,
         timestamp: new Date(),
         responseType: "show_position",
         liquidityAction: {
-          pair: "SEI-USDC",
-          dex: "sailor-v2",
-          fee: 0.3,
+          pool: "SEI-USDC",
           minPrice: 0.009,
           maxPrice: 0.013,
         },
@@ -225,9 +210,7 @@ This strategy is optimized for your preferences and current market conditions.`,
         timestamp: new Date(),
         responseType: "show_position",
         liquidityAction: {
-          pair: "SEI-USDC",
-          dex: "sailor-v2",
-          fee: 0.3,
+          pool: "SEI-USDC",
           minPrice: 0.008,
           maxPrice: 0.015,
         },
@@ -284,7 +267,6 @@ This strategy is optimized for your preferences and current market conditions.`,
               Help us create the perfect position for you. All questions are optional.
             </p>
           </div>
-
           <LiquidityPreferenceForm
             onSubmit={(formData) => handleFormSubmit(formData, messageId)}
             onSkip={() => {
@@ -362,61 +344,28 @@ This strategy is optimized for your preferences and current market conditions.`,
   }
 
   return (
-    <div className="h-screen flex flex-col relative overflow-hidden">
+    <div className="relative min-h-0 bg-gradient-to-br from-gray-900 via-slate-900 to-zinc-900">
       {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-slate-900 to-zinc-900">
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
-      {/* Header */}
-      <div className="relative z-10 border-b border-gray-800/50 p-6 bg-gray-950/80 backdrop-blur-xl">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <div className="flex items-center space-x-4">
-            <div className="relative group">
-              <div className="w-14 h-14 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-cyan-500/25">
-                <svg viewBox="0 0 24 24" className="w-7 h-7 text-white" fill="currentColor">
-                  <path d="M12 2C10.5 2 9.2 2.8 8.5 4C7.8 2.8 6.5 2 5 2C3.3 2 2 3.3 2 5C2 6.5 2.8 7.8 4 8.5C2.8 9.2 2 10.5 2 12C2 13.5 2.8 14.8 4 15.5C2.8 16.2 2 17.5 2 19C2 20.7 3.3 22 5 22C6.5 22 7.8 21.2 8.5 20C9.2 21.2 10.5 22 12 22C13.5 22 14.8 21.2 15.5 20C16.2 21.2 17.5 22 19 22C20.7 22 22 20.7 22 19C22 17.5 21.2 16.2 20 15.5C21.2 14.8 22 13.5 22 12C22 10.5 21.2 9.2 20 8.5C21.2 7.8 22 6.5 22 5C22 3.3 20.7 2 19 2C17.5 2 16.2 2.8 15.5 4C14.8 2.8 13.5 2 12 2M12 6C13.1 6 14 6.9 14 8S13.1 10 12 10 10 9.1 10 8 10.9 6 12 6M8 10C9.1 10 10 10.9 10 12S9.1 14 8 14 6 13.1 6 12 6.9 10 8 10M16 10C17.1 10 18 10.9 18 12S17.1 14 16 14 14 13.1 14 12 14.9 10 16 10M12 14C13.1 14 14 14.9 14 16S13.1 18 12 18 10 17.1 10 16 10.9 14 12 14Z" />
-                </svg>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-pulse flex items-center justify-center">
-                  <Sparkles className="w-2 h-2 text-white" />
-                </div>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-2xl opacity-20 blur-lg group-hover:opacity-30 transition-opacity duration-300"></div>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                SeiMind AI
-              </h1>
-              <p className="text-sm text-gray-400 flex items-center">
-                <Brain className="w-3 h-3 mr-1 text-cyan-400" />
-                Your Web3 Intelligence Partner
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <div className="px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-xs text-green-400 font-medium">Online</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Chat Area */}
-      <div className="relative z-10 flex-1 overflow-hidden">
-        <ScrollArea className="h-full p-6">
-          <div className="space-y-8 max-w-4xl mx-auto pb-6">
+      {/* Chat Messages Area - Natural height with bottom padding for fixed input */}
+      <div className="relative z-10 pb-32">
+        <div className="p-6">
+          <div className="space-y-8 max-w-4xl mx-auto">
             {messages.map((message, index) => (
               <div
                 key={message.id}
-                className={`flex ${message.type === "user" ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-4 duration-500`}
+                className={`flex ${message.type === "user" ? "justify-end" : "justify-start"
+                  } animate-in slide-in-from-bottom-4 duration-500`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div
-                  className={`flex items-start space-x-4 max-w-[85%] ${message.type === "user" ? "flex-row-reverse space-x-reverse" : ""}`}
+                  className={`flex items-start space-x-4 max-w-[85%] ${message.type === "user" ? "flex-row-reverse space-x-reverse" : ""
+                    }`}
                 >
                   <div
                     className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${message.type === "user"
@@ -476,69 +425,71 @@ This strategy is optimized for your preferences and current market conditions.`,
 
             <div ref={messagesEndRef} />
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
-      {/* Input Area */}
-      <div className="relative z-10 border-t border-gray-800/50 p-6 bg-gray-950/90 backdrop-blur-xl">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex space-x-4">
-            <div className="flex-1 relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-2xl blur-xl group-focus-within:blur-2xl transition-all duration-300"></div>
-              <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask SeiMind about Web3, blockchain, or Sei network..."
-                className="relative bg-gray-800/80 backdrop-blur-sm border-gray-700/50 text-white placeholder-gray-400 py-6 text-base rounded-2xl pr-16 shadow-2xl shadow-gray-900/50 focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300"
-              />
+      {/* Fixed Input Area at Bottom of Viewport */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-800/50 bg-gray-950/95 backdrop-blur-xl">
+        <div className="p-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex space-x-4">
+              <div className="flex-1 relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-2xl blur-xl group-focus-within:blur-2xl transition-all duration-300"></div>
+                <Input
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask SeiMind about Web3, blockchain, or Sei network..."
+                  className="relative bg-gray-800/80 backdrop-blur-sm border-gray-700/50 text-white placeholder-gray-400 py-6 text-base rounded-2xl pr-16 shadow-2xl shadow-gray-900/50 focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300"
+                />
 
-              {/* Enhanced Mic Button */}
+                {/* Enhanced Mic Button */}
+                <Button
+                  onClick={listening ? stopListening : startListening}
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 h-12 w-12 p-0 rounded-full transition-all duration-500 border-0 shadow-2xl ${listening
+                      ? "bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 shadow-red-500/50 animate-pulse scale-110"
+                      : "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-500 shadow-cyan-500/50 hover:scale-110"
+                    }`}
+                >
+                  <div className="relative">
+                    {listening ? (
+                      <MicOff className="w-6 h-6 text-white animate-pulse" />
+                    ) : (
+                      <Mic className="w-6 h-6 text-white" />
+                    )}
+                    {listening && <div className="absolute inset-0 rounded-full bg-red-400/30 animate-ping"></div>}
+                  </div>
+                </Button>
+              </div>
+
               <Button
-                onClick={listening ? stopListening : startListening}
-                className={`absolute right-2 top-1/2 transform -translate-y-1/2 h-12 w-12 p-0 rounded-full transition-all duration-500 border-0 shadow-2xl ${listening
-                    ? "bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 shadow-red-500/50 animate-pulse scale-110"
-                    : "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-cyan-500/50 hover:scale-110"
-                  }`}
+                onClick={handleSend}
+                disabled={!inputValue.trim()}
+                size="lg"
+                className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 disabled:from-gray-600 disabled:to-gray-700 text-white border-0 px-8 py-6 rounded-2xl shadow-2xl shadow-cyan-500/50 hover:scale-105 transition-all duration-300 disabled:hover:scale-100"
               >
-                <div className="relative">
-                  {listening ? (
-                    <MicOff className="w-6 h-6 text-white animate-pulse" />
-                  ) : (
-                    <Mic className="w-6 h-6 text-white" />
-                  )}
-                  {listening && <div className="absolute inset-0 rounded-full bg-red-400/30 animate-ping"></div>}
-                </div>
+                <Send className="w-6 h-6" />
               </Button>
             </div>
 
-            <Button
-              onClick={handleSend}
-              disabled={!inputValue.trim()}
-              size="lg"
-              className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 disabled:from-gray-600 disabled:to-gray-700 text-white border-0 px-8 py-6 rounded-2xl shadow-2xl shadow-cyan-500/50 hover:scale-105 transition-all duration-300 disabled:hover:scale-100"
-            >
-              <Send className="w-6 h-6" />
-            </Button>
-          </div>
-
-          {listening && (
-            <div className="mt-6 flex items-center justify-center space-x-4 animate-in slide-in-from-bottom-2 duration-300">
-              <div className="flex space-x-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full animate-bounce"></div>
-                <div className="w-3 h-3 bg-pink-400 rounded-full animate-bounce delay-100"></div>
-                <div className="w-3 h-3 bg-red-400 rounded-full animate-bounce delay-200"></div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center animate-pulse">
-                  <Mic className="w-4 h-4 text-white" />
+            {listening && (
+              <div className="mt-6 flex items-center justify-center space-x-4 animate-in slide-in-from-bottom-2 duration-300">
+                <div className="flex space-x-2">
+                  <div className="w-3 h-3 bg-red-400 rounded-full animate-bounce"></div>
+                  <div className="w-3 h-3 bg-pink-400 rounded-full animate-bounce delay-100"></div>
+                  <div className="w-3 h-3 bg-red-400 rounded-full animate-bounce delay-200"></div>
                 </div>
-                <span className="text-lg text-red-400 font-semibold bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">
-                  SeiMind is listening...
-                </span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center animate-pulse">
+                    <Mic className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-lg text-red-400 font-semibold bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">
+                    SeiMind is listening...
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

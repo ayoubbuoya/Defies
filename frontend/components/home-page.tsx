@@ -126,13 +126,13 @@ export function HomePage({ setActiveView }: HomePageProps) {
               </Button>
 
               <Button
-                onClick={() => setActiveView("liquidity")}
+                onClick={() => setActiveView("pools")}
                 variant="outline"
                 size="lg"
-                className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white px-8 py-4 text-lg font-semibold transition-all duration-300"
+                className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white px-8 py-4 text-lg rounded-xl shadow-2xl shadow-blue-500/30 hover:scale-105 transition-all duration-300"
               >
                 <Droplets className="w-5 h-5 mr-2" />
-                Explore Liquidity Tools
+                Find your Pool
               </Button>
             </div>
           </div>
@@ -230,10 +230,10 @@ export function HomePage({ setActiveView }: HomePageProps) {
               onClick={() => setActiveView("liquidity")}
               variant="outline"
               size="lg"
-              className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white px-8 py-4 text-lg font-semibold transition-all duration-300"
+              className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white px-8 py-4 text-lg rounded-xl shadow-2xl shadow-blue-500/30 hover:scale-105 transition-all duration-300"
             >
               <TrendingUp className="w-5 h-5 mr-2" />
-              View Liquidity Tools
+              Track Liquidity
             </Button>
           </div>
         </div>

@@ -96,7 +96,7 @@ export default function GlobalLoader({
     return (
         <div className="min-h-screen bg-gray-950 flex items-center justify-center">
             <div className="flex flex-col items-center space-y-4">
-                <Image src="/seimind-logo.png" alt="SeiMind" width={100} height={100} className="animate-pulse" />
+                <Image src="/logo.png" alt="SeiMind" width={100} height={100} className="animate-pulse" />
                 {/* Main loader card */}
                 <div className="max-w-md w-full">
                     <div className={`${colors.bg} backdrop-blur-sm border ${colors.accent}/20 rounded-2xl p-8 shadow-2xl`}>
@@ -146,12 +146,12 @@ export default function GlobalLoader({
                                 <div
                                     key={i}
                                     className={`w-2 h-2 rounded-full transition-all duration-300 ${type === "loading"
-                                            ? progress > i * 30
-                                                ? "bg-cyan-400"
-                                                : "bg-gray-600"
-                                            : type === "success"
-                                                ? "bg-green-400"
-                                                : "bg-red-400"
+                                        ? progress > i * 30
+                                            ? "bg-cyan-400"
+                                            : "bg-gray-600"
+                                        : type === "success"
+                                            ? "bg-green-400"
+                                            : "bg-red-400"
                                         }`}
                                     style={{
                                         animationDelay: `${i * 0.2}s`,

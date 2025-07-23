@@ -87,7 +87,6 @@ export function TopNavigation({ activeView, setActiveView }: TopNavigationProps)
             </div>
 
             {/* Navigation Items */}
-            {/* Navigation Items */}
             <nav className="flex items-center space-x-2">
               {navigationItems.map((item) => {
                 const isActive = activeView === item.id
