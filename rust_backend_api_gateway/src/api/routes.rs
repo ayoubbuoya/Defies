@@ -3,8 +3,10 @@
 // Add get_pools_handler to your use statement
 use actix_web::web;
 use crate::api::handlers::{
-    verify_signature, get_graph_data_handler, prompt_handler, get_pools_handler
-}; // <-- Add it here
+    verify_signature, get_graph_data_handler, prompt_handler, get_pools_handler,
+    get_token_pair_price_history, // <-- Change this
+};
+
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
     // Authentication routes
@@ -14,7 +16,8 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/data")
             .service(get_graph_data_handler)
-            .service(get_pools_handler), // <-- Add the new handler here
+            .service(get_pools_handler)
+            .service(get_token_pair_price_history),
     );
     
     // Agent/LLM routes
