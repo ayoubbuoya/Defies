@@ -58,3 +58,20 @@
     --chart-5: 340 75% 55%;
   }
 }
+
+@layer base {
+  * {
+    scrollbar-width: none;           /* Firefox */
+    -ms-overflow-style: none;        /* Internet Explorer/Edge */
+  }
+
+  *::-webkit-scrollbar {
+    display: none;                   /* Chrome, Safari */
+  }
+
+  html {
+    scroll-behavior: smooth;         /* Optional: smooth scrolling */
+  }
+}
+
+
