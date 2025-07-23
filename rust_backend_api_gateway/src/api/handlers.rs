@@ -1,13 +1,17 @@
 use actix_web::{get, post, web, HttpResponse, Responder};
 use crate::api::models::{
     AuthRequest, AuthResponse, GraphDataQuery, PromptRequest, PromptResponse,
+    
 };
 use crate::service::{
     auth_service,
     data_for_graphs_service::{self, GraphDataParams, GraphDataType},
     pool_service,
     prompt_pipeline_service,
+    kline_service
 };
+
+use serde::Deserialize;
 
 // --- Existing Auth Handler ---
 
@@ -81,4 +85,23 @@ pub async fn get_pools_handler() -> impl Responder {
         Ok(data) => HttpResponse::Ok().json(data),
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
+}
+#[get("/{token0}/{token1}/price-history")]
+pub async fn get_token_pair_price_history(
+    path: web::Path<(String, String)>,
+    query: web::Query<PriceHistoryQuery>,
+) -> impl Responder {
+    let (token0, token1) = path.into_inner();
+    let interval = query.interval.unwrap_or(15); // Default to 15 minutes
+    let limit = query.limit.unwrap_or(200);      // Default to 200 results
+
+    match kline_service::get_kline_data(&token0, &token1, interval, limit).await {
+        Ok(kline_data) => HttpResponse::Ok().json(kline_data),
+        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
+    }}
+
+#[derive(Deserialize)]
+pub struct PriceHistoryQuery {
+    pub interval: Option<u32>,
+    pub limit: Option<u32>,
 }
