@@ -10,10 +10,10 @@ export function createHttpServer() {
 
   /**
    * POST /ask
-   * { prompt, address, pubKey }
+   * { prompt, address, formData }
    */
   app.post("/ask", async (req, res) => {
-    const { prompt, address = "0x0", pubKey = "0x0" } = req.body ?? {};
+    const { prompt, address = "0x0", formData} = req.body ?? {};
 
     if (!prompt) {
       return res
@@ -22,7 +22,7 @@ export function createHttpServer() {
     }
 
     try {
-      const answer = await runAgent(prompt, { address, pubKey });
+      const answer = await runAgent(prompt, { address, formData });
       res.json({ answer });
     } catch (e) {
       console.error("❌ Agent execution error:", e.message);
