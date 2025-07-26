@@ -10,4 +10,5 @@ export const env = {
   groqTemperature: parseFloat(process.env.GROQ_TEMPERATURE) || 0,
   defaultNetwork: process.env.SEI_NETWORK || "sei-testnet",
   llmProvider: process.env.LLM_PROVIDER || "groq",
+  backendUrl: process.env.BACKEND_URL || "http://localhost:8080",
 };
