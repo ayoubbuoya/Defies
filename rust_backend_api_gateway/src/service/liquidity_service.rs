@@ -49,7 +49,7 @@ pub struct KlineResponse {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ActiveLiquidity {
     pub tick: String,
-    pub price: String,
+    pub price: f64,
     pub liquidity: String,
 }
 
@@ -96,12 +96,45 @@ pub async fn get_kline_data(token0_symbol: &str, token1_symbol: &str, interval: 
 
 /// Fetches the active liquidity distribution for a given pool address.
 /// API Endpoint: https://asia-southeast1-ktx-finance-2.cloudfunctions.net/sailor_poolapi/getActiveLiquidity
-pub async fn get_active_liquidity(pool_address: &str) -> Result<ActiveLiquidityResponse, Box<dyn Error>> {
-    let url = format!("https://asia-southeast1-ktx-finance-2.cloudfunctions.net/sailor_poolapi/getActiveLiquidity?address={}", pool_address);
-    let liquidity_data: ActiveLiquidityResponse = reqwest::get(&url).await?.json().await?;
-    Ok(liquidity_data)
+// in liquidity_service.rs
+
+use std::fmt;
+
+// A more specific error type for better debugging
+#[derive(Debug)]
+struct ApiError {
+    message: String,
 }
 
+impl fmt::Display for ApiError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
+
+impl Error for ApiError {}
+
+
+pub async fn get_active_liquidity(pool_address: &str) -> Result<ActiveLiquidityResponse, Box<dyn Error>> {
+    let url = format!("https://asia-southeast1-ktx-finance-2.cloudfunctions.net/sailor_poolapi/getActiveLiquidity?address={}", pool_address);
+
+    // Make the request and check the status code
+    let response = reqwest::get(&url).await?.error_for_status()?;
+
+    // Get the response body as text for debugging
+    let body_text = response.text().await?;
+    
+    // Attempt to deserialize the text into our struct
+    let liquidity_data: ActiveLiquidityResponse = serde_json::from_str(&body_text)
+        .map_err(|e| -> Box<dyn Error> {
+            // If deserialization fails, return a custom error with the raw body
+            Box::new(ApiError {
+                message: format!("Failed to parse API response. Error: {}. Raw Body: {}", e, body_text),
+            })
+        })?;
+
+    Ok(liquidity_data)
+}
 
 /// Fetches historical data and calculates the optimal concentrated liquidity range in ticks.
 pub async fn get_optimal_liquidity_range(
