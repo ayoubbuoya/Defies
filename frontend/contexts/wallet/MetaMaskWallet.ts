@@ -6,6 +6,7 @@ export class MetaMaskWallet implements WalletStrategy {
     private provider: ethers.BrowserProvider | null = null;
     private signer: ethers.JsonRpcSigner | null = null;
 
+
     isInstalled() {
         return !!(window as any).ethereum?.isMetaMask;
     }
@@ -32,6 +33,19 @@ export class MetaMaskWallet implements WalletStrategy {
 
         this.signer = await this.provider.getSigner();
         return this.signer.getAddress();
+    }
+
+    async restoreConnection(): Promise<boolean> {
+        if (!this.isInstalled()) return false;
+
+        this.provider = new ethers.BrowserProvider((window as any).ethereum);
+        this.signer = await this.provider.getSigner();
+        return !!(this.provider && this.signer);
+    }
+
+    async getAddress(): Promise<string> {
+        if (!this.signer) throw new Error("Not connected");
+        return await this.signer.getAddress();
     }
 
     async signMessage(address: string, message: string): Promise<string> {

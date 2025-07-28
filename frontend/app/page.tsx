@@ -1,33 +1,46 @@
 "use client"
 
-import { useState } from "react"
-import { WalletProvider } from "@/contexts/wallet/WalletProvider"
+import { useState, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { TopNavigation } from "@/components/top-navigation"
 import { HomePage } from "@/components/home-page"
 import { ChatInterface } from "@/components/chat-interface"
-import { WalletConnectionModal } from "@/components/wallet-connection-modal"
+import { EnhancedLiquidityProvider } from "@/components/enhanced-liquidity-provider"
+import { Footer } from "@/components/footer"
+import { PoolsPage } from "@/components/pools-page"
 
-export default function Home() {
+export default function Page() {
+  const searchParams = useSearchParams()
+  const viewParam = searchParams.get("view")
+
   const [activeView, setActiveView] = useState("home")
 
-  const renderContent = () => {
+  // Update active view on first load (or URL change)
+  useEffect(() => {
+    if (viewParam) {
+      setActiveView(viewParam)
+      document.getElementById(viewParam)?.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [viewParam])
+
+  const renderActiveView = () => {
     switch (activeView) {
       case "home":
         return <HomePage setActiveView={setActiveView} />
       case "chat":
         return <ChatInterface />
+      case "pools":
+        return <PoolsPage />
       default:
         return <HomePage setActiveView={setActiveView} />
     }
   }
 
   return (
-    <WalletProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-zinc-900">
-        <TopNavigation activeView={activeView} setActiveView={setActiveView} />
-        <main className="container mx-auto px-6 py-8">{renderContent()}</main>
-        <WalletConnectionModal />
-      </div>
-    </WalletProvider>
+    <div className="min-h-screen bg-gray-950 flex flex-col">
+      <TopNavigation activeView={activeView} setActiveView={setActiveView} />
+      <main className="flex-1">{renderActiveView()}</main>
+      {activeView === "home" && <Footer />}
+    </div>
   )
 }

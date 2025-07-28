@@ -10,8 +10,6 @@
   },
   "dependencies": {
     "@cosmjs/stargate": "^0.33.1",
-    "@dynamic-labs/cosmos": "^4.22.5",
-    "@dynamic-labs/sdk-react-core": "^4.22.5",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
     "@radix-ui/react-aspect-ratio": "1.1.1",

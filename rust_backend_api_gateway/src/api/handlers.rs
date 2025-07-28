@@ -1,15 +1,12 @@
-use actix_web::{get, post, web, HttpResponse, Responder};
 use crate::api::models::{
     AuthRequest, AuthResponse, GraphDataQuery, PromptRequest, PromptResponse,
-    
 };
 use crate::service::{
     auth_service,
     data_for_graphs_service::{self, GraphDataParams, GraphDataType},
-    pool_service,
-    prompt_pipeline_service,
-    kline_service
+    kline_service, pool_service, prompt_pipeline_service,
 };
+use actix_web::{HttpResponse, Responder, get, post, web};
 
 use serde::Deserialize;
 
@@ -44,7 +41,8 @@ pub async fn get_graph_data_handler(query: web::Query<GraphDataQuery>) -> impl R
             interval: query.interval.as_deref(),
             limit: query.limit,
         }),
-        _ => Err(HttpResponse::BadRequest().body("Invalid 'type' parameter. Use 'liquidity' or 'candles'.")),
+        _ => Err(HttpResponse::BadRequest()
+            .body("Invalid 'type' parameter. Use 'liquidity' or 'candles'.")),
     };
 
     let params = match params_result {
@@ -76,17 +74,20 @@ pub async fn prompt_handler(data: web::Json<PromptRequest>) -> impl Responder {
     }
 }
 
-
 // ---  Pool List Handler ---
 
 #[get("/pools")]
 pub async fn get_pools_handler() -> impl Responder {
+    println!("Pools endpoint called"); // Debug log
+
     match pool_service::get_pool_list().await {
+
         Ok(data) => HttpResponse::Ok().json(data),
         Err(e) => {
             // Add this log to see the real error in your terminal
             eprintln!("Error fetching pool list: {:?}", e); 
             HttpResponse::InternalServerError().body("An internal error occurred. Please check server logs.")
+
         }
     }
 }
@@ -97,12 +98,13 @@ pub async fn get_token_pair_price_history(
 ) -> impl Responder {
     let (token0, token1) = path.into_inner();
     let interval = query.interval.unwrap_or(15); // Default to 15 minutes
-    let limit = query.limit.unwrap_or(200);      // Default to 200 results
+    let limit = query.limit.unwrap_or(200); // Default to 200 results
 
     match kline_service::get_kline_data(&token0, &token1, interval, limit).await {
         Ok(kline_data) => HttpResponse::Ok().json(kline_data),
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
-    }}
+    }
+}
 
 #[derive(Deserialize)]
 pub struct PriceHistoryQuery {
