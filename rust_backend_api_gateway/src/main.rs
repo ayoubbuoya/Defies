@@ -17,10 +17,11 @@ use crate::api::init_routes;
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         let cors = Cors::default()
-            .allowed_origin("http://localhost:3000") // <-- Your frontend's URL
+           // .allowed_origin("http://localhost:3000") // <-- Your frontend's URL
             .allowed_methods(vec!["GET", "POST"])
             .allow_any_header()
-            .max_age(3600);
+            .max_age(3600)
+        .supports_credentials();//for credentials and 
 
         App::new()
             .wrap(cors) // <-- Add CORS middleware

@@ -20,7 +20,7 @@ pub struct DailyProtocolTvl {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct V3Tvl {
-    pub timestamp_at_midnight: f64,
+    pub timestamp_at_midnight: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -35,8 +35,8 @@ pub struct PoolStats {
     pub day: TimePeriodStats,
     pub week: TimePeriodStats,
     pub month: TimePeriodStats,
-    pub boost_apr: f64,
-    pub tvl: f64,
+    pub boost_apr:Option<f64>,
+    pub tvl: Option<f64>,
     pub token0: TokenInfo,
     pub token1: TokenInfo,
 }
@@ -47,12 +47,12 @@ pub struct TotalLiquidity {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+
 pub struct TimePeriodStats {
-    pub volume: f64,
-    pub max_price: f64,
-    pub min_price: f64,
-    pub price: f64,
+    pub volume: Option<f64>,
+    pub max_price: Option<f64>,
+    pub min_price: Option<f64>,
+    pub price: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -62,8 +62,8 @@ pub struct TokenInfo {
     pub symbol: String,
     pub name: String,
     pub decimals: String,
-    pub token0_price: Option<String>, // Use Option for fields that may not be present
-    pub token1_price: Option<String>,
+    #[serde(alias = "token0Price", alias = "token1Price")]
+    pub price: Option<String>,
     pub url: String,
 }
 

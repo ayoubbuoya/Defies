@@ -83,7 +83,11 @@ pub async fn prompt_handler(data: web::Json<PromptRequest>) -> impl Responder {
 pub async fn get_pools_handler() -> impl Responder {
     match pool_service::get_pool_list().await {
         Ok(data) => HttpResponse::Ok().json(data),
-        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
+        Err(e) => {
+            // Add this log to see the real error in your terminal
+            eprintln!("Error fetching pool list: {:?}", e); 
+            HttpResponse::InternalServerError().body("An internal error occurred. Please check server logs.")
+        }
     }
 }
 #[get("/{token0}/{token1}/price-history")]
