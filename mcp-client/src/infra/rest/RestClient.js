@@ -15,7 +15,7 @@ export class RestClient {
 
   async get(endpoint, params = {}) {
     try {
-      const response = await this.client.get(`${this.client.defaults.baseUR}${endpoint}`, { params });
+      const response = await this.client.get(`${this.client.defaults.baseURL}${endpoint}`, { params });
       return { isError: false, data: response.data };
     } catch (error) {
       return {

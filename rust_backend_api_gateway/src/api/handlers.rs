@@ -1,17 +1,18 @@
 use crate::api::models::{
-    AuthRequest, AuthResponse, GraphDataQuery, PromptRequest, PromptResponse,
+    AuthRequest, AuthResponse, GraphDataQuery, PriceHistoryRequest, PromptRequest, PromptResponse,
 };
 use crate::service::{
     auth_service,
     data_for_graphs_service::{self, GraphDataParams, GraphDataType},
-    kline_service, pool_service, prompt_pipeline_service,
+    kline_service, pool_service,
+    price_history_tool_service::PriceHistoryService,
+    prompt_pipeline_service,
 };
 use actix_web::{HttpResponse, Responder, get, post, web};
-
 use serde::Deserialize;
+use tracing::{error, info};
 
-// --- Existing Auth Handler ---
-
+// --- Authentication Handler ---
 #[post("/verify")]
 pub async fn verify_signature(data: web::Json<AuthRequest>) -> impl Responder {
     match auth_service::handle_auth(data.into_inner()) {
@@ -20,8 +21,7 @@ pub async fn verify_signature(data: web::Json<AuthRequest>) -> impl Responder {
     }
 }
 
-// --- New Graph Data Handler ---
-
+// --- Graph Data Handler ---
 #[get("/graph-data")]
 pub async fn get_graph_data_handler(query: web::Query<GraphDataQuery>) -> impl Responder {
     let params_result = match query.graph_type.as_str() {
@@ -56,29 +56,23 @@ pub async fn get_graph_data_handler(query: web::Query<GraphDataQuery>) -> impl R
     }
 }
 
-// --- New Prompt Pipeline Handler ---
-
+// --- Prompt Handler ---
 #[post("/prompt")]
 pub async fn prompt_handler(data: web::Json<PromptRequest>) -> impl Responder {
-    // IMPORTANT: This URL should come from a configuration file, not be hardcoded.
     let js_backend_url = "http://localhost:4000/api/agent/invoke";
 
     match prompt_pipeline_service::forward_prompt_to_backend(&data.prompt, js_backend_url).await {
-        Ok(llm_response) => {
-            // We need to map the service response to our API response model
-            HttpResponse::Ok().json(PromptResponse {
-                response_text: llm_response.response_text,
-            })
-        }
+        Ok(llm_response) => HttpResponse::Ok().json(PromptResponse {
+            response_text: llm_response.response_text,
+        }),
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
 }
 
-// ---  Pool List Handler ---
-
+// --- Pool List Handler ---
 #[get("/pools")]
 pub async fn get_pools_handler() -> impl Responder {
-    println!("Pools endpoint called"); // Debug log
+    println!("Pools endpoint called");
 
     match pool_service::get_pool_list().await {
         Ok(data) => {
@@ -86,7 +80,7 @@ pub async fn get_pools_handler() -> impl Responder {
             HttpResponse::Ok().json(data)
         }
         Err(e) => {
-            println!("Pool service error: {:?}", e); // More detailed error
+            println!("Pool service error: {:?}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to fetch pool data",
                 "details": e.to_string()
@@ -94,14 +88,16 @@ pub async fn get_pools_handler() -> impl Responder {
         }
     }
 }
+
+// --- Token Pair Price History Handler ---
 #[get("/{token0}/{token1}/price-history")]
 pub async fn get_token_pair_price_history(
     path: web::Path<(String, String)>,
     query: web::Query<PriceHistoryQuery>,
 ) -> impl Responder {
     let (token0, token1) = path.into_inner();
-    let interval = query.interval.unwrap_or(15); // Default to 15 minutes
-    let limit = query.limit.unwrap_or(200); // Default to 200 results
+    let interval = query.interval.unwrap_or(15);
+    let limit = query.limit.unwrap_or(200);
 
     match kline_service::get_kline_data(&token0, &token1, interval, limit).await {
         Ok(kline_data) => HttpResponse::Ok().json(kline_data),
@@ -113,4 +109,57 @@ pub async fn get_token_pair_price_history(
 pub struct PriceHistoryQuery {
     pub interval: Option<u32>,
     pub limit: Option<u32>,
+}
+
+// --- Price History Tool for AI Agent Handler ---
+#[get("/price-history")]
+pub async fn get_price_history(query: web::Query<PriceHistoryRequest>) -> impl Responder {
+    info!(
+        "📊 Price history request: {}/{} (interval: {}min, limit: {})",
+        query.token0,
+        query.token1,
+        query.interval.unwrap_or(1440),
+        query.limit.unwrap_or(200)
+    );
+
+    // Validate input
+    if query.token0.is_empty() || query.token1.is_empty() {
+        return HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "Both token0 and token1 are required"
+        }));
+    }
+
+    if query.token0.eq_ignore_ascii_case(&query.token1) {
+        return HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "token0 and token1 cannot be the same"
+        }));
+    }
+
+    // Create service and process request
+    let service = PriceHistoryService::new();
+
+    match service
+        .get_price_history_analysis(
+            &query.token0,
+            &query.token1,
+            query.interval.unwrap_or(1440),
+            query.limit.unwrap_or(200),
+        )
+        .await
+    {
+        Ok(result) => {
+            info!(
+                "✅ Successfully processed price history for {}/{}",
+                query.token0, query.token1
+            );
+            HttpResponse::Ok().json(result)
+        }
+        Err(e) => {
+            error!("❌ Failed to process price history: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to process price history",
+                "details": e.to_string()
+            }))
+        }
+    }
 }
