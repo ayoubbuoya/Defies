@@ -1,5 +1,5 @@
 use actix_cors::Cors;
-use actix_web::{App, HttpServer, middleware::Logger, web};
+use actix_web::{App, HttpServer, middleware::Logger};
 
 mod api;
 mod config;
@@ -16,13 +16,10 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         let cors = Cors::default()
-
-           // .allowed_origin("http://localhost:3000") // <-- Your frontend's URL
             .allowed_methods(vec!["GET", "POST"])
-
             .allow_any_header()
             .max_age(3600)
-        .supports_credentials();//for credentials and 
+            .supports_credentials();
 
         App::new()
             .wrap(cors)
