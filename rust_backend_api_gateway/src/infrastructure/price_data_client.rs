@@ -1,5 +1,6 @@
 // we are using the binance API to fetch price data
-use crate::api::models::PricePoint;
+use crate::config::price_fetch_api_base_url;
+use crate::models::price_history::PricePoint;
 use anyhow::{Result, anyhow};
 use reqwest;
 use std::env;
@@ -19,8 +20,7 @@ impl Default for PriceDataClient {
 
 impl PriceDataClient {
     pub fn new() -> Self {
-        let base_url = env::var("PRICE_FETCH_API_BASE_URL")
-            .expect("❌ PRICE_FETCH_API_BASE_URL environment variable is required but not found in .env file");
+        let base_url = price_fetch_api_base_url();
 
         info!("🔗 Using API base URL from .env: {}", base_url);
         Self {

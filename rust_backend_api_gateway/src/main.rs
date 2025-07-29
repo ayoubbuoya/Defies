@@ -6,6 +6,7 @@ mod config;
 mod domain;
 mod infrastructure;
 mod math;
+mod models;
 mod service;
 
 use api::routes::init_routes;
@@ -16,6 +17,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         let cors = Cors::default()
+            .allow_any_origin()
             .allowed_methods(vec!["GET", "POST"])
             .allow_any_header()
             .max_age(3600)

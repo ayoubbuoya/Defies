@@ -1,12 +1,11 @@
-use crate::api::models::{
-    PoolInfo, PriceHistoryResponse, PricePoint, PriceRange, RecentPrice, RecommendationContext,
-    VolatilityInfo,
-};
 use crate::infrastructure::price_data_client::PriceDataClient;
-// Import the math functions
 use crate::math::{
     calculate_suggested_range_width, calculate_volatility, determine_trend,
     determine_volatility_level,
+};
+use crate::models::price_history::{
+    PoolInfo, PriceHistoryResponse, PricePoint, PriceRange, RecentPrice, RecommendationContext,
+    VolatilityInfo,
 };
 use anyhow::{Result, anyhow};
 use tracing::{debug, info, warn};
