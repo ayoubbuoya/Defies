@@ -75,16 +75,12 @@ pub async fn get_pools_handler() -> impl Responder {
     println!("Pools endpoint called");
 
     match pool_service::get_pool_list().await {
-        Ok(data) => {
-            println!("Pool service returned success");
-            HttpResponse::Ok().json(data)
-        }
+
+        Ok(data) => HttpResponse::Ok().json(data),
         Err(e) => {
-            println!("Pool service error: {:?}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to fetch pool data",
-                "details": e.to_string()
-            }))
+            // Add this log to see the real error in your terminal
+            eprintln!("Error fetching pool list: {:?}", e); 
+            HttpResponse::InternalServerError().body("An internal error occurred. Please check server logs.")
         }
     }
 }
