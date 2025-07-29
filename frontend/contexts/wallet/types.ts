@@ -24,6 +24,7 @@ export interface NetworkConfig {
 
 export interface WalletContextType {
     isConnected: boolean
+    isRestoring: boolean
     address: string | null
     walletType: string | null
     isConnecting: boolean
@@ -39,8 +40,10 @@ export interface WalletContextType {
 }
 
 export interface WalletStrategy {
+    restoreConnection(): Promise<boolean>;
     isInstalled(): boolean;
     connect(selectedNetwork: NetworkConfig): Promise<string>; // returns address
+    getAddress(): Promise<string>; // returns address
     signMessage(address: string, message: string): Promise<string>;
     switchNetwork(network: NetworkConfig): Promise<string>; // returns address
     sendTransaction(p: TxParams): Promise<any>; // returns transaction result

@@ -39,7 +39,9 @@ pub struct SailorDailyProtocolTvl {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SailorV3Tvl {
+
     pub timestamp_at_midnight: Option<f64>,
+
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -58,6 +60,7 @@ pub struct SailorPoolStats {
     pub tvl: Option<f64>,
     pub token0: SailorTokenInfo,
     pub token1: SailorTokenInfo,
+
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -67,10 +70,12 @@ pub struct SailorTotalLiquidity {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SailorTimePeriodStats {
+
     pub volume: Option<f64>,
     pub max_price: Option<f64>,
     pub min_price: Option<f64>,
     pub price: Option<f64>,
+
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -80,8 +85,10 @@ pub struct SailorTokenInfo {
     pub symbol: String,
     pub name: String,
     pub decimals: String,
+
     #[serde(alias = "token0Price", alias = "token1Price")]
     pub price: Option<String>,
+
     pub url: String,
 }
 

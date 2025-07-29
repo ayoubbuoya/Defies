@@ -4,7 +4,8 @@
 use actix_web::web;
 use crate::api::handlers::{
     verify_signature, get_graph_data_handler, prompt_handler, get_pools_handler,
-    get_token_pair_price_history, // <-- Change this
+    get_token_pair_price_history,
+    get_price_history, 
 };
 
 
@@ -22,4 +23,5 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
     
     // Agent/LLM routes
     cfg.service(web::scope("/agent").service(prompt_handler));
+    cfg.service(web::scope("/tools").service(get_price_history));
 }
