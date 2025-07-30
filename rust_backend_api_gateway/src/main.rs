@@ -1,5 +1,5 @@
 use actix_cors::Cors;
-use actix_web::{App, HttpServer};
+use actix_web::{App, HttpServer, middleware::Logger};
 use tracing_actix_web::TracingLogger;
 
 mod api;
@@ -7,6 +7,7 @@ mod config;
 mod domain;
 mod infrastructure;
 mod math;
+mod models;
 mod service;
 
 use api::routes::init_routes;
@@ -22,12 +23,13 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         let cors = Cors::default()
-            // In production, you should restrict this to your frontend's domain
-            // e.g., .allowed_origin("http://localhost:3000")
-            .allow_any_origin() 
+            .allow_any_origin()
             .allowed_methods(vec!["GET", "POST"])
             .allow_any_header()
-            .max_age(3600);
+            .max_age(3600)
+            .supports_credentials();
+
+
 
         App::new()
             .wrap(cors)

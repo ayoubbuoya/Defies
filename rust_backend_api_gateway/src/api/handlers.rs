@@ -1,6 +1,6 @@
-use crate::api::models::{
-    AuthRequest, AuthResponse, GraphDataQuery, PriceHistoryRequest, PromptRequest, PromptResponse,
-};
+use crate::api::models::{GraphDataQuery, PromptRequest, PromptResponse};
+use crate::models::auth::{AuthRequest, AuthResponse};
+use crate::models::price_history::PriceHistoryRequest;
 use crate::service::{
     auth_service,
     data_for_graphs_service::{self, GraphDataParams, GraphDataType},
@@ -72,15 +72,13 @@ pub async fn prompt_handler(data: web::Json<PromptRequest>) -> impl Responder {
 // --- Pool List Handler ---
 #[get("/pools")]
 pub async fn get_pools_handler() -> impl Responder {
-    println!("Pools endpoint called");
-
     match pool_service::get_pool_list().await {
-
         Ok(data) => HttpResponse::Ok().json(data),
         Err(e) => {
             // Add this log to see the real error in your terminal
-            eprintln!("Error fetching pool list: {:?}", e); 
-            HttpResponse::InternalServerError().body("An internal error occurred. Please check server logs.")
+            eprintln!("Error fetching pool list: {:?}", e);
+            HttpResponse::InternalServerError()
+                .body("An internal error occurred. Please check server logs.")
         }
     }
 }
