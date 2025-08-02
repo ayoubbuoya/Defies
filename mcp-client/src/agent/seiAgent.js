@@ -2,19 +2,12 @@ import { AgentExecutor } from "langchain/agents";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { mcpBalanceTool } from "../tools/mcpBalanceTool.js";
 import { mcpTokenBalanceTool } from "../tools/mcpTokenBalanceTool.js";
-import { mcpDiagnosticTool } from "../tools/mcpDiagnosticTool.js";
 import { poolsDataTool } from "../tools/poolsDataTool.js";
 import {tokenPairPriceHistoryTool } from "../tools/tokenPairPriceHistoryTool.js";
 import { createToolCallingAgent } from "langchain/agents";
 import { createLLM } from "../llm/LLM.js";
 import { env } from "../config/env.js";
-
-// Response type constants
-export const RESPONSE_TYPES = {
-  STANDARD: "standard",
-  FORM_REQUEST: "form_request", 
-  POOL_RECOMMENDATION: "pool_recommendation"
-};
+import { parseAgentResponse, RESPONSE_TYPES } from "../utils/responseProcessor.js";
 
 // 1. Create the LLM instance
 const llm = createLLM(env.llmProvider);
@@ -26,13 +19,6 @@ const llm = createLLM(env.llmProvider);
  */
 export async function runAgent(prompt, ctx) {
   console.log("🚀 Starting agent with MCP server connection…");
-  console.log("🚀 Starting agent with MCP server connection…");
-  console.log("📋 Form data received:", ctx.formData);
-
-  // Format form data safely for the template
-  const formDataInfo = formatFormDataForPrompt(ctx.formData);
-  console.log("📝 Formatted form data:", formDataInfo);
-
 
   // 2. Create the enhanced prompt template
   const promptTemplate = ChatPromptTemplate.fromMessages([
@@ -44,9 +30,6 @@ Context:
 - User address: ${ctx.address}
 - Public key: ${ctx.pubKey}
 - Network: ${env.defaultNetwork}
-- Conversation ID: ${ctx.conversationId || 'new'}
-- Form Status: ${formDataInfo}
-- Is form submitted? ${ctx.formData ? "yes" : 'no'}
 
 You can handle multiple types of requests:
 
@@ -56,45 +39,89 @@ You can handle multiple types of requests:
 - General wallet information
 
 **LIQUIDITY POOL RECOMMENDATIONS:**
-- if a form is submitted from a user don't ask for more information even if the form is incomplete
-- if a form is submitted you are forced to call the tokenPairPriceHistoryTool to get the price history of the pairs
-- don't recommend a range without using the tools
-- Recommend liquidity pools based on user preferences
-- Use the tools to recommend the best pools based on their data
-- use tools to read the price history of token pairs and provide the range of prices to the user 
+- Provide personalized pool recommendations 
+- Recommend concentrated liquidity ranges in pools 
 
-**RESPONSE TYPES:**
-You must respond with structured data indicating the response type:
+**CRITICAL: RESPONSE FORMAT REQUIREMENTS**
+You MUST respond using EXACT structured formats. Choose ONE of these two response types:
 
-1. **STANDARD RESPONSE** (for balance queries, general questions):
-   - Just provide the answer normally
+**1. STANDARD RESPONSE** (for balance queries, general questions, errors):
+Format: "STANDARD|[your message]"
+Example: "STANDARD|Your SEI balance is 150.5 tokens"
 
-2. **FORM REQUEST** (when you need user investment preferences if the user hasn't provided a form submission or preferences only):
-   - ONLY when user asks for pool recommendations AND no form data was submitted
-   - Use this format: "FORM_REQUEST|I need more information to provide personalized recommendations. Please provide your investment preferences.|pairs:multiselect:ETH/USDC,BTC/USDT,SEI/USDC|risk_level:select:low,medium,high|investment_amount:number"
+**2. POOL RECOMMENDATION** (when providing pool recommendations with price ranges):
+Format: "POOL_RECOMMENDATION|[explanation message]|pool_id:[id]|min_price:[price]|max_price:[price]"
+Example: "POOL_RECOMMENDATION|Based on current market data, I recommend the SEI/USDC pool|pool_id:sei_usdc_001|min_price:0.85|max_price:1.15"
 
-3. **POOL RECOMMENDATION** (when providing final recommendations):
-   - When you have user preferences OR when form data is submitted (even if empty/partial)
-   - Use this format: "POOL_RECOMMENDATION|[your explanation text]|pool_id:[id]|min_price:[price]|max_price:[price]|expected_apy:[apy]|risk_score:[score]"
+**MANDATORY TOOL USAGE RULES:**
 
-**INSTRUCTIONS:**
-- Apply your knowledge to determine optimal price ranges based on:
-  * Current price and recent volatility
-  * Pool volume and fees
-  * User's risk tolerance (low: tight ranges, high: wider ranges)
-  * Investment amount (larger amounts may need wider ranges)
-- Calculate expected APY using: (daily_fees * pool_share * 365) / investment_amount
-- Risk assessment factors: price volatility, pool depth, historical performance
-- Use tools **only when needed** for real-time blockchain data
-- Do **not** call the same tool with identical parameters multiple times
-- For investment advice, always consider user's risk tolerance and investment amount if they are provided
-- If asking about pools/liquidity without preferences, request form data
-- If user provides preferences in their message, use those directly
-- Provide clear, actionable recommendations with reasoning
-- Focus only on Sei EVM blockchain
-- If you encounter errors, provide clear error messages
-- Never reveal technical details about tools or implementation
-Let's help the user accurately and efficiently.`
+**For Balance Questions:**
+- MUST call mcpBalanceTool or mcpTokenBalanceTool FIRST
+- Return STANDARD format with real balance data
+
+**For Pool Recommendations:**
+- STEP 1: MUST call poolsDataTool to get available pools
+- STEP 2: Select the best pool based on user needs
+- STEP 3: MUST call tokenPairPriceHistoryTool for the chosen pool's token pair
+- STEP 4: Calculate min_price and max_price from the price data
+- STEP 5: Return POOL_RECOMMENDATION format with real data
+
+**For General Questions:**
+- No tools needed for DeFi education/concepts
+- Return STANDARD format
+
+**CRITICAL RULES:**
+
+✅ **ALWAYS DO:**
+- Call BOTH poolsDataTool AND tokenPairPriceHistoryTool for pool recommendations
+- Use real data from tools for all blockchain information
+- Calculate price ranges based on actual price history
+- Follow the exact response formats
+- start with "STANDARD|" for general responses
+- start with "POOL_RECOMMENDATION|" for pool recommendations
+
+❌ **NEVER DO:**
+- Give balance info without calling balance tools
+- Recommend pools without calling poolsDataTool
+- Give price ranges without calling tokenPairPriceHistoryTool
+- Skip any tool when real-time data is needed
+- Provide fake or estimated data
+
+**PRICE RANGE CALCULATION:**
+When you get price history data, calculate ranges based on:
+- Current price from the data
+- Recent volatility patterns
+- Market conditions
+- Risk tolerance (tighter ranges = lower risk)
+
+**EXAMPLES:**
+
+User: "What's my balance?"
+✅ Call mcpBalanceTool → "STANDARD|Your current SEI balance is 150.5 tokens"
+
+User: "Recommend a liquidity pool"
+✅ STEP 1: Call poolsDataTool → Get pools
+✅ STEP 2: Select best pool (e.g., SEI/USDC)
+✅ STEP 3: Call tokenPairPriceHistoryTool with "SEI/USDC"
+✅ STEP 4: Calculate ranges from price data
+✅ STEP 5: "POOL_RECOMMENDATION|Based on current SEI/USDC market data...|pool_id:123|min_price:0.85|max_price:1.15"
+
+User: "How does staking work?"
+✅ "STANDARD|Staking involves locking tokens to earn rewards..." (no tools needed)
+
+**MANDATORY REQUIREMENTS:**
+- pool_id: MUST be actual pool ID from poolsDataTool
+- min_price: MUST be calculated from tokenPairPriceHistoryTool data
+- max_price: MUST be calculated from tokenPairPriceHistoryTool data (> min_price)
+- Both prices must be realistic and based on actual market data
+
+**REMEMBER:**
+- For pool recommendations, you MUST call both tools in sequence
+- Never guess at prices or pool IDs
+- Always base recommendations on real tool data
+- Keep explanations clear and helpful
+
+Let's help users with accurate, data-driven recommendations!`
     ],
     ["placeholder", "{chat_history}"],
     ["human", "{input}"],
@@ -102,10 +129,10 @@ Let's help the user accurately and efficiently.`
   ]);
 
   const tools = [
-    mcpBalanceTool, 
+    mcpBalanceTool,
     mcpTokenBalanceTool, 
-    mcpDiagnosticTool,
-    tokenPairPriceHistoryTool
+    tokenPairPriceHistoryTool,
+    poolsDataTool
   ];
 
   // 3. Create the agent with the enhanced prompt
@@ -120,7 +147,7 @@ Let's help the user accurately and efficiently.`
     agent,
     tools,
     verbose: false,
-    maxIterations: 6, // Increased for complex recommendations
+    maxIterations: 8, // Increased to allow for sequential tool calls
   });
 
   try {
@@ -129,9 +156,8 @@ Let's help the user accurately and efficiently.`
       chat_history: []
     });
     
-    console.log("✅ Agent completed successfully");
+    console.log("✅ Agent completed successfully with output:", output);
     
-    // Parse and structure the response
     return parseAgentResponse(output);
     
   } catch (error) {
@@ -141,139 +167,4 @@ Let's help the user accurately and efficiently.`
       message: `Sorry, I encountered an error: ${error.message}`
     };
   }
-}
-
-/**
- * Parse agent response and structure it based on response type
- * @param {string} output - Raw agent output
- * @returns {object} Structured response object
- */
-function parseAgentResponse(output) {
-  try {
-    // Check for form request
-    if (output.startsWith("FORM_REQUEST|")) {
-      const parts = output.split("|");
-      const message = parts[1];
-      const fieldDefs = parts.slice(2);
-      
-      const form_fields = fieldDefs.map(fieldDef => {
-        const [name, type, options] = fieldDef.split(":");
-        return {
-          name,
-          type,
-          ...(options && { options: options.split(",") })
-        };
-      });
-
-      return {
-        type: RESPONSE_TYPES.FORM_REQUEST,
-        message,
-        form_fields
-      };
-    }
-    
-    // Check for pool recommendation
-    if (output.startsWith("POOL_RECOMMENDATION|")) {
-      const parts = output.split("|");
-      const message = parts[1];
-      
-      const recommendation = {};
-      for (let i = 2; i < parts.length; i++) {
-        const [key, value] = parts[i].split(":");
-        recommendation[key] = isNaN(value) ? value : parseFloat(value);
-      }
-
-      return {
-        type: RESPONSE_TYPES.POOL_RECOMMENDATION,
-        message,
-        recommendation
-      };
-    }
-    
-    // Standard response
-    return {
-      type: RESPONSE_TYPES.STANDARD,
-      message: output
-    };
-    
-  } catch (error) {
-    console.error("Error parsing agent response:", error);
-    return {
-      type: RESPONSE_TYPES.STANDARD,
-      message: output
-    };
-  }
-}
-/**
- * Helper function to process and normalize form data
- * @param {object} formData - Form data to process
- * @returns {object} Processed form data with defaults
- */
-export function processFormData(formData) {
-  if (!formData) return null;
-  
-  // Normalize empty strings, null, undefined to null
-  const normalize = (value) => {
-    if (value === '' || value === null || value === undefined) return null;
-    if (Array.isArray(value) && value.length === 0) return null;
-    return value;
-  };
-  
-  return {
-    pairs: normalize(formData.pairs),
-    risk_level: normalize(formData.risk_level),
-    investment_amount: normalize(formData.investment_amount)
-  };
-}
-
-/**
- * Helper function to check if form data is complete
- * @param {object} formData - Form data to validate
- * @returns {boolean} Whether form data is complete
- */
-export function isFormDataComplete(formData) {
-  if (!formData) return false;
-  const processed = processFormData(formData);
-  return processed.pairs !== null && 
-         processed.risk_level !== null && 
-         processed.investment_amount !== null;
-}
-
-
-/**
- * Helper function to generate conversation context
- * @param {string} address - User address
- * @param {string} pubKey - User public key
- * @param {string} conversationId - Optional conversation ID
- * @returns {object} Context object
- */
-export function createContext(address, pubKey, conversationId = null) {
-  return {
-    address,
-    pubKey,
-    conversationId: conversationId || `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-  };
-}
-
-/**
- * Helper function to safely format form data for prompt template
- * @param {object} formData - Form data to format
- * @returns {string} Safe string representation
- */
-function formatFormDataForPrompt(formData) {
-  if (!formData) return 'No form data provided';
-  
-  const processed = processFormData(formData);
-  if (!processed) return 'No form data provided';
-  
-  // Format as readable text to avoid JSON parsing issues in template
-  const parts = [];
-  if (processed.pairs) {
-    const pairsList = Array.isArray(processed.pairs) ? processed.pairs.join(', ') : processed.pairs;
-    parts.push(`Trading Pairs: ${pairsList}`);
-  }
-  if (processed.risk_level) parts.push(`Risk Level: ${processed.risk_level}`);
-  if (processed.investment_amount) parts.push(`Investment Amount: $${processed.investment_amount}`);
-  
-  return parts.length > 0 ? `Form Data - ${parts.join(', ')}` : 'Incomplete form data';
 }

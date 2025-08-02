@@ -11,9 +11,8 @@ import { env } from "../config/env.js";
 export const poolsDataTool = new DynamicStructuredTool({
   name: "get_pools_data",
   description:
-    "Fetch all liquidity pools with data such as id, total liquidity, fee tier, volumes, TVL, and token symbols.",
-  schema: z.object({}),
-
+    "Fetch all liquidity pools with data such as id, the protocol (dex), fee tier, daily volume, TVL, and token symbols.",
+  schema: z.object({}).nullable().default({}),
   func: async () => {
     const restClient = new RestClient(env.backendUrl);
 
@@ -26,22 +25,8 @@ export const poolsDataTool = new DynamicStructuredTool({
         throw new Error(res.error);
       }
 
-      const pools = res.data.poolStats ?? [];
-
-      const simplified = pools.map((pool) => ({
-        id: pool.id,
-        totalLiquidity: pool.totalLiquidity?.value ?? null,
-        feeTier: pool.feeTier,
-        dailyVolume: pool.day?.volume ?? null,
-        weeklyVolume: pool.week?.volume ?? null,
-        monthlyVolume: pool.month?.volume ?? null,
-        tvl: pool.tvl,
-        token0Symbol: pool.token0?.symbol,
-        token1Symbol: pool.token1?.symbol,
-      }));
-
       console.log(`✅ Pools fetched successfully`);
-      return JSON.stringify(simplified, null, 2);
+      return JSON.stringify(res.data, null, 2);
     } catch (err) {
       console.error(`❌ poolsDataTool error: ${err.message}`);
       throw new Error(`Failed to fetch pool data – ${err.message}`);
