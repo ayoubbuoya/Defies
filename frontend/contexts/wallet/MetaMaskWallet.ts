@@ -37,10 +37,13 @@ export class MetaMaskWallet implements WalletStrategy {
 
     async restoreConnection(): Promise<boolean> {
         if (!this.isInstalled()) return false;
-
-        this.provider = new ethers.BrowserProvider((window as any).ethereum);
-        this.signer = await this.provider.getSigner();
-        return !!(this.provider && this.signer);
+        try {
+            this.provider = new ethers.BrowserProvider((window as any).ethereum);
+            this.signer = await this.provider.getSigner();
+            return !!(this.provider && this.signer);
+        } catch (error) {
+            return false;
+        }
     }
 
     async getAddress(): Promise<string> {
