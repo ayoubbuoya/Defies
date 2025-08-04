@@ -13,6 +13,7 @@ use api::routes::init_routes;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv::dotenv().ok();
     env_logger::init();
 
     HttpServer::new(|| {

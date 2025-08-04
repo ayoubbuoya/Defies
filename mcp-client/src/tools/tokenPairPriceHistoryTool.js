@@ -20,8 +20,8 @@ export const tokenPairPriceHistoryTool = new DynamicStructuredTool({
   }),
   func: async ({ token0, token1, interval = 1440, limit = 200 }) => {
     console.log(`🔍 Fetching price history for ${token0} and ${token1} with interval ${interval} and limit ${limit}`);
-    const token0Symbol = getTokenFunctionalSymbol(token0, "rest");
-    const token1Symbol = getTokenFunctionalSymbol(token1, "rest");
+    const token0Symbol = getTokenFunctionalSymbol(token1, "rest");
+    const token1Symbol = getTokenFunctionalSymbol(token0, "rest"); // they are swapped because the API expects token0 to be the base token and token1 to be the quote token
     const restClient = new RestClient(env.backendUrl);
     const params = { token0: token0Symbol, token1: token1Symbol, interval, limit };
     const response = await restClient.get("/tools/price-history", params);
@@ -29,7 +29,7 @@ export const tokenPairPriceHistoryTool = new DynamicStructuredTool({
       console.error("Error fetching price history:", response.error);
       throw new Error(response.error);
     }
-    console.log(`✅ tokenPairPriceHistoryTool fetched successfully for ${token0}/${token1}`);
+    console.log(`✅ tokenPairPriceHistoryTool fetched successfully for ${token1}/${token0}`);
     return JSON.stringify(response.data, null, 2);
   },
 });

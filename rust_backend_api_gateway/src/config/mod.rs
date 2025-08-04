@@ -8,3 +8,7 @@ pub fn price_fetch_api_base_url() -> String {
     env::var("PRICE_FETCH_API_BASE_URL")
         .unwrap_or_else(|_| "https://api.binance.com/api/v3".to_string())
 }
+
+pub fn mcp_client_base_url() -> String {
+    env::var("MCP_CLIENT_BASE_URL").unwrap_or_else(|_| "http://localhost:5001/".to_string())
+}

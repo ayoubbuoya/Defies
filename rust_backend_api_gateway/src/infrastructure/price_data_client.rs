@@ -3,7 +3,6 @@ use crate::config::price_fetch_api_base_url;
 use crate::models::price_history::PricePoint;
 use anyhow::{Result, anyhow};
 use reqwest;
-use std::env;
 use tracing::{debug, error, info};
 
 #[derive(Debug)]
@@ -37,7 +36,7 @@ impl PriceDataClient {
         limit: u32,
     ) -> Result<Vec<PricePoint>> {
         // Convert tokens to Binance symbol format (e.g., USDC + SEI = SEIUSDC)
-        let symbol = format!("{}{}", token1.to_uppercase(), token0.to_uppercase());
+        let symbol = format!("{}{}", token0.to_uppercase(), token1.to_uppercase());
 
         // Convert interval (minutes) to Binance format
         let binance_interval = self.convert_interval_to_binance(interval);

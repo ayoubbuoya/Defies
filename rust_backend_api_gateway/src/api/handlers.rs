@@ -1,4 +1,5 @@
 use crate::api::models::{GraphDataQuery, PromptRequest};
+use crate::config::mcp_client_base_url;
 use crate::models::auth::{AuthRequest, AuthResponse};
 use crate::models::price_history::PriceHistoryRequest;
 use crate::service::{
@@ -59,7 +60,7 @@ pub async fn get_graph_data_handler(query: web::Query<GraphDataQuery>) -> impl R
 // --- Prompt Handler ---
 #[post("/ask")]
 pub async fn prompt_handler(data: web::Json<PromptRequest>) -> impl Responder {
-    let nodejs_backend_url = "http://localhost:5001/ask";
+    let nodejs_backend_url = format!("{}ask", mcp_client_base_url());
 
     println!("🔥 Received request:");
     println!("   Prompt: {}", data.prompt);
@@ -68,7 +69,7 @@ pub async fn prompt_handler(data: web::Json<PromptRequest>) -> impl Responder {
     match prompt_pipeline_service::forward_prompt_to_backend(
         &data.prompt,
         &data.address,
-        nodejs_backend_url,
+        &nodejs_backend_url,
     )
     .await
     {
