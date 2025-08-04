@@ -3,7 +3,6 @@ use crate::config::price_fetch_api_base_url;
 use crate::models::price_history::PricePoint;
 use anyhow::{Result, anyhow};
 use reqwest;
-use std::env;
 use tracing::{debug, error, info};
 
 #[derive(Debug)]

@@ -2,13 +2,7 @@ import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
 import { McpClient } from "../infra/mcp/McpClient.js";
 import { env } from "../config/env.js";
-
-// Popular ERC-20 tokens on Sei network 
-const TOKEN_REGISTRY = {
-  "USDC": "0x3894085Ef7Ff0f0aeDf52E2A2704928d1Ec074F1",
-  "USDT": "0x9151434b16b9763660705744891fa906f660ecc5",
-  // Add more tokens as needed
-};
+import { getTokenAddress } from "../utils/tokenRegistry.js";
 
 /**
  * get_token_balance(tokenSymbol: string, ownerAddress: string, network?: string = "sei") → string
@@ -22,7 +16,7 @@ export const mcpTokenBalanceTool = new DynamicStructuredTool({
   schema: z.object({
     tokenSymbol: z
       .string()
-      .describe("Token symbol only those symbols are supported: USDC, USDT, WETH, SEI"),
+      .describe("Token symbol only those symbols are supported: USDC or USDT"),
     ownerAddress: z
       .string()
       .describe("The wallet address that owns the tokens, e.g. 0xABCD..."),
@@ -40,14 +34,13 @@ export const mcpTokenBalanceTool = new DynamicStructuredTool({
     try {
       console.log(`🔍 get_token_balance → token: ${tokenSymbol}, owner: ${ownerAddress} on ${network}`);
 
-      const tokenAddress = TOKEN_REGISTRY[tokenSymbol.toUpperCase()];
+      const tokenAddress = getTokenAddress(tokenSymbol);
 
       if (!tokenAddress) {
-    const supported = Object.keys(TOKEN_REGISTRY).join(", ");
-    throw new Error(
-      `Unsupported token symbol ".`
-    );
-  }
+        throw new Error(
+          `Unsupported token symbol: ${tokenSymbol}`
+        );
+      }
 
       const res = await mcpClient.callTool("get_erc20_balance", { 
         address: ownerAddress,

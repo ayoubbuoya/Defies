@@ -18,6 +18,7 @@ pub struct GraphDataQuery {
 #[derive(Deserialize)]
 pub struct PromptRequest {
     pub prompt: String,
+    pub address: String,
 }
 
 /// Serializes the response from the LLM service.

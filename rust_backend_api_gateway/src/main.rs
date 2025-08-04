@@ -14,12 +14,8 @@ use api::routes::init_routes;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // This sets up a logger that will print all trace, debug, info, etc.
-    // messages to your console.
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .with_test_writer()
-        .init();
+    dotenv::dotenv().ok();
+    env_logger::init();
 
     HttpServer::new(|| {
         let cors = Cors::default()

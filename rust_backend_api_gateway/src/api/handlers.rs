@@ -1,4 +1,5 @@
-use crate::api::models::{GraphDataQuery, PromptRequest, PromptResponse};
+use crate::api::models::{GraphDataQuery, PromptRequest};
+use crate::config::mcp_client_base_url;
 use crate::models::auth::{AuthRequest, AuthResponse};
 use crate::models::price_history::PriceHistoryRequest;
 use crate::service::{
@@ -27,7 +28,7 @@ pub async fn get_graph_data_handler(query: web::Query<GraphDataQuery>) -> impl R
     let params_result = match query.graph_type.as_str() {
         "liquidity" => Ok(GraphDataParams {
             data_type: GraphDataType::LiquidityDistribution,
-            pool_address: query.pool_address.as_deref(),
+            pool_address: query.pool_address.as_ref().map(|s| s.as_str()),
             token0_symbol: None,
             token1_symbol: None,
             interval: None,
@@ -36,9 +37,9 @@ pub async fn get_graph_data_handler(query: web::Query<GraphDataQuery>) -> impl R
         "candles" => Ok(GraphDataParams {
             data_type: GraphDataType::PriceCandles,
             pool_address: None,
-            token0_symbol: query.token0.as_deref(),
-            token1_symbol: query.token1.as_deref(),
-            interval: query.interval.as_deref(),
+            token0_symbol: query.token0.as_ref().map(|s| s.as_str()),
+            token1_symbol: query.token1.as_ref().map(|s| s.as_str()),
+            interval: query.interval.as_ref().map(|s| s.as_str()),
             limit: query.limit,
         }),
         _ => Err(HttpResponse::BadRequest()
@@ -57,15 +58,32 @@ pub async fn get_graph_data_handler(query: web::Query<GraphDataQuery>) -> impl R
 }
 
 // --- Prompt Handler ---
-#[post("/prompt")]
+#[post("/ask")]
 pub async fn prompt_handler(data: web::Json<PromptRequest>) -> impl Responder {
-    let js_backend_url = "http://localhost:4000/api/agent/invoke";
+    let nodejs_backend_url = format!("{}ask", mcp_client_base_url());
 
-    match prompt_pipeline_service::forward_prompt_to_backend(&data.prompt, js_backend_url).await {
-        Ok(llm_response) => HttpResponse::Ok().json(PromptResponse {
-            response_text: llm_response.response_text,
-        }),
-        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
+    println!("🔥 Received request:");
+    println!("   Prompt: {}", data.prompt);
+    println!("   Address: {:?}", data.address);
+
+    match prompt_pipeline_service::forward_prompt_to_backend(
+        &data.prompt,
+        &data.address,
+        &nodejs_backend_url,
+    )
+    .await
+    {
+        Ok(nodejs_response) => {
+            println!("✅ Successfully processed request");
+            // Return the answer directly as JSON (not wrapped in PromptResponse)
+            HttpResponse::Ok().json(nodejs_response.answer)
+        }
+        Err(e) => {
+            eprintln!("❌ Error calling Node.js backend: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": format!("Failed to process request: {}", e)
+            }))
+        }
     }
 }
 
