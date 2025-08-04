@@ -32,20 +32,20 @@ interface Message {
 
 // API Response Types
 interface StandardResponse {
-  answer: {
-    type: "STANDARD"
-    message: string
-  }
+
+  type: "STANDARD"
+  message: string
+
 }
 
 interface PoolRecommendationResponse {
-  answer: {
-    type: "POOL_RECOMMENDATION"
-    message: string
-    pool_id: string
-    min_price: number
-    max_price: number
-  }
+
+  type: "POOL_RECOMMENDATION"
+  message: string
+  pool_id: string
+  min_price: number
+  max_price: number
+
 }
 
 type AIResponse = StandardResponse | PoolRecommendationResponse
@@ -101,7 +101,8 @@ export function ChatInterface() {
   // API call to your backend
   const callAIAgent = async (prompt: string): Promise<AIResponse> => {
     try {
-      const response = await fetch('http://localhost:5001/ask', { // Adjust this URL to match your backend endpoint
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/agent/ask`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -122,10 +123,9 @@ export function ChatInterface() {
       console.error('Error calling AI agent:', error)
       // Return fallback response
       return {
-        answer: {
-          type: "STANDARD",
-          message: "I'm sorry, I'm having trouble connecting to my AI services right now. Please try again in a moment."
-        }
+
+        type: "STANDARD",
+        message: "I'm sorry, I'm having trouble connecting to my AI services right now. Please try again in a moment."
       }
     }
   }
@@ -163,24 +163,24 @@ export function ChatInterface() {
 
       let aiMessage: Message
 
-      if (aiResponse.answer.type === "POOL_RECOMMENDATION") {
+      if (aiResponse.type === "POOL_RECOMMENDATION") {
         aiMessage = {
           id: Date.now().toString(),
           type: "ai",
-          content: aiResponse.answer.message,
+          content: aiResponse.message,
           timestamp: new Date(),
           responseType: "POOL_RECOMMENDATION",
           poolRecommendation: {
-            pool_id: aiResponse.answer.pool_id,
-            min_price: aiResponse.answer.min_price,
-            max_price: aiResponse.answer.max_price
+            pool_id: aiResponse.pool_id,
+            min_price: aiResponse.min_price,
+            max_price: aiResponse.max_price
           }
         }
       } else {
         aiMessage = {
           id: Date.now().toString(),
           type: "ai",
-          content: aiResponse.answer.message,
+          content: aiResponse.message,
           timestamp: new Date(),
           responseType: "STANDARD",
         }
