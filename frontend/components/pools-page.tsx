@@ -8,24 +8,12 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, TrendingUp, DollarSign, Percent, Volume2, Filter, X, Loader2, RefreshCw } from "lucide-react"
 import { useRouter } from "next/navigation"
-
-
-interface Pool {
-    id: string
-    protocol: string
-    token0_symbol: string
-    token1_symbol: string
-    tvl: number
-    daily_volume: number
-    apr: number
-    fee_tier: string
-}
+import { usePools } from "@/hooks/usePools"
+import { formatCurrency, formatPercentage } from "../utils/formatters"
 
 export function PoolsPage() {
-    // State for pools data
-    const [pools, setPools] = useState<Pool[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+
+    const { pools, loading: isLoadingPool, error: poolError } = usePools()
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
     // Filter states
@@ -36,33 +24,6 @@ export function PoolsPage() {
 
     const router = useRouter()
 
-    // Fetch pools data from backend
-    const fetchPools = async () => {
-        try {
-            setLoading(true)
-            setError(null)
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-            const response = await fetch(`${backendUrl}/data/pools`)
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`)
-            }
-
-            const data: Pool[] = await response.json()
-            setPools(data)
-            setLastUpdated(new Date())
-        } catch (err) {
-            console.error('Error fetching pools:', err)
-            setError(err instanceof Error ? err.message : 'Failed to fetch pools data')
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    // Fetch data on component mount
-    useEffect(() => {
-        fetchPools()
-    }, [])
-
     // Generate dynamic filter options from actual data
     const protocolOptions = useMemo(() => {
         const protocols = [...new Set(pools.map(pool => pool.protocol))]
@@ -71,7 +32,7 @@ export function PoolsPage() {
 
     const feeTierOptions = useMemo(() => {
         const feeTiers = [...new Set(pools.map(pool => pool.fee_tier))]
-        return ["All Fees", ...feeTiers.sort((a, b) => parseFloat(a) - parseFloat(b)).map(tier => `${tier}%`)]
+        return ["All Fees", ...feeTiers.sort((a, b) => a - b).map(tier => `${tier}%`)]
     }, [pools])
 
     const pairOptions = useMemo(() => {
@@ -98,19 +59,6 @@ export function PoolsPage() {
         })
     }, [pools, selectedProtocol, selectedFeeTier, selectedPair, searchQuery])
 
-    const formatCurrency = (value: number) => {
-        if (value >= 1000000) {
-            return `$${(value / 1000000).toFixed(2)}M`
-        } else if (value >= 1000) {
-            return `$${(value / 1000).toFixed(1)}K`
-        }
-        return `$${value.toFixed(2)}`
-    }
-
-    const formatPercentage = (value: number) => {
-        return `${value.toFixed(2)}%`
-    }
-
     const clearFilters = () => {
         setSelectedProtocol("All Protocols")
         setSelectedFeeTier("All Fees")
@@ -127,7 +75,7 @@ export function PoolsPage() {
     // Calculate stats from filtered pools
     const totalTVL = filteredPools.reduce((sum, pool) => sum + pool.tvl, 0)
     const totalVolume24h = filteredPools.reduce((sum, pool) => sum + pool.daily_volume, 0)
-    const totalFees24h = filteredPools.reduce((sum, pool) => sum + (pool.daily_volume * parseFloat(pool.fee_tier) / 100), 0)
+    const totalFees24h = filteredPools.reduce((sum, pool) => sum + (pool.daily_volume * pool.fee_tier / 100), 0)
     const avgAPR = filteredPools.length > 0 ? filteredPools.reduce((sum, pool) => sum + pool.apr, 0) / filteredPools.length : 0
 
     return (
@@ -145,24 +93,11 @@ export function PoolsPage() {
                                 </p>
                             )}
                         </div>
-                        <Button
-                            onClick={fetchPools}
-                            disabled={loading}
-                            variant="outline"
-                            className="text-gray-300 border-gray-700 hover:bg-gray-800 bg-transparent"
-                        >
-                            {loading ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            ) : (
-                                <RefreshCw className="w-4 h-4 mr-2" />
-                            )}
-                            Refresh
-                        </Button>
                     </div>
                 </div>
 
                 {/* Error State */}
-                {error && (
+                {poolError && (
                     <Card className="bg-red-900/20 border-red-800 mb-8">
                         <CardContent className="p-6">
                             <div className="flex items-center space-x-2">
@@ -173,7 +108,7 @@ export function PoolsPage() {
                                 </div>
                                 <div>
                                     <p className="text-red-400 font-medium">Error loading pools data</p>
-                                    <p className="text-red-300 text-sm">{error}</p>
+                                    <p className="text-red-300 text-sm">{poolError}</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -181,7 +116,7 @@ export function PoolsPage() {
                 )}
 
                 {/* Loading State */}
-                {loading && pools.length === 0 && (
+                {isLoadingPool && pools.length === 0 && (
                     <div className="text-center py-12">
                         <Loader2 className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-4" />
                         <p className="text-gray-400">Loading pools data...</p>
@@ -189,7 +124,7 @@ export function PoolsPage() {
                 )}
 
                 {/* Stats Cards */}
-                {!loading && pools.length > 0 && (
+                {!isLoadingPool && pools.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                         <Card className="bg-gray-900 border-gray-800">
                             <CardContent className="p-6">
@@ -242,7 +177,7 @@ export function PoolsPage() {
                 )}
 
                 {/* Filters */}
-                {!loading && pools.length > 0 && (
+                {!isLoadingPool && pools.length > 0 && (
                     <Card className="bg-gray-900 border-gray-800 mb-8">
                         <CardHeader>
                             <div className="flex items-center justify-between">
@@ -348,7 +283,7 @@ export function PoolsPage() {
                 )}
 
                 {/* Pools Table */}
-                {!loading && pools.length > 0 && (
+                {!isLoadingPool && pools.length > 0 && (
                     <Card className="bg-gray-900 border-gray-800">
                         <CardHeader>
                             <CardTitle className="text-white">Pools ({filteredPools.length})</CardTitle>
@@ -370,7 +305,7 @@ export function PoolsPage() {
                                         {filteredPools.map((pool) => (
                                             <TableRow key={pool.id}
                                                 className="border-gray-800 hover:bg-gray-800/50"
-                                                onClick={() => router.push(`/liquidity?${pool.id}`)}>
+                                                onClick={() => router.push(`/liquidity?pool=${pool.id}`)}>
                                                 <TableCell>
                                                     <Badge variant="outline" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
                                                         {pool.protocol}
@@ -393,7 +328,7 @@ export function PoolsPage() {
                                 </Table>
                             </div>
 
-                            {filteredPools.length === 0 && !loading && (
+                            {filteredPools.length === 0 && !isLoadingPool && (
                                 <div className="text-center py-12">
                                     <div className="text-gray-400 mb-4">No pools found matching your criteria</div>
                                     <Button
