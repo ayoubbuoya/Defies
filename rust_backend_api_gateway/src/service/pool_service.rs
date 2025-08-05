@@ -153,7 +153,8 @@ pub async fn get_pool_list() -> Result<Vec<UnifiedPool>, Box<dyn Error>> {
                             .pool_stats
                             .into_iter()
                             .map(transform_sailor_pool)
-                            .filter(|pool| pool.daily_volume.unwrap_or(0.0) > 1000.0);
+                            .filter(|pool| pool.daily_volume.unwrap_or(0.0) > 1000.0)
+                            .filter(|pool| pool.tvl.unwrap_or(0.0) > 1000.0);
 
                         unified_pools.extend(transformed);
                     }
@@ -210,9 +211,24 @@ pub async fn get_pool_list() -> Result<Vec<UnifiedPool>, Box<dyn Error>> {
 
 /// Converts a pool from the Sailor Finance format to our unified format.
 fn transform_sailor_pool(pool: SailorPoolStats) -> UnifiedPool {
-    let fee_tier = match pool.fee_tier.parse::<f64>() {
-        Ok(value) => (value / 10000.0).to_string(),
-        Err(_) => "N/A".to_string(), // fallback if parsing fails
+    let fee_tier_val = match pool.fee_tier.parse::<f64>() {
+        Ok(value) => value / 10000.0,
+        Err(_) => 0.0, // fallback if parsing fails
+    };
+    let fee_tier = if fee_tier_val > 0.0 {
+        fee_tier_val.to_string()
+    } else {
+        "N/A".to_string()
+    };
+
+    let daily_volume = pool.day.volume.unwrap_or(0.0);
+    let tvl = pool.tvl.unwrap_or(0.0);
+    let boost_apr = pool.boost_apr.unwrap_or(0.0);
+
+    let apr = if tvl > 0.0 {
+        ((daily_volume * fee_tier_val / tvl) * 365.0) + (boost_apr * 100.0)
+    } else {
+        boost_apr * 100.0
     };
 
     UnifiedPool {
@@ -222,7 +238,7 @@ fn transform_sailor_pool(pool: SailorPoolStats) -> UnifiedPool {
         token1_symbol: pool.token1.symbol,
         tvl: pool.tvl,
         daily_volume: pool.day.volume,
-        apr: pool.boost_apr, // Using boost_apr as the primary APR source from Sailor
+        apr: Some(apr),
         fee_tier,
     }
 }
