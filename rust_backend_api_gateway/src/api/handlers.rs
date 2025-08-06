@@ -1,13 +1,11 @@
-use crate::api::models::{GraphDataQuery, PromptRequest};
+use crate::api::models::{LiquidityDataQuery, PromptRequest};
 use crate::config::mcp_client_base_url;
-use crate::models::auth::{AuthRequest, AuthResponse};
-use crate::models::price_history::PriceHistoryRequest;
+use crate::dtos::auth::{AuthRequest, AuthResponse};
+use crate::dtos::price_history::PriceHistoryRequest;
 use crate::service::{
     auth_service,
-    data_for_graphs_service::{self, GraphDataParams, GraphDataType},
-    kline_service, pool_service,
-    price_history_tool_service::PriceHistoryService,
-    prompt_pipeline_service,
+    data_service::{self},
+    pool_service, price_history_tool_service, prompt_pipeline_service,
 };
 use actix_web::{HttpResponse, Responder, get, post, web};
 use serde::Deserialize;
@@ -23,38 +21,34 @@ pub async fn verify_signature(data: web::Json<AuthRequest>) -> impl Responder {
 }
 
 // --- Graph Data Handler ---
-#[get("/graph-data")]
-pub async fn get_graph_data_handler(query: web::Query<GraphDataQuery>) -> impl Responder {
-    let params_result = match query.graph_type.as_str() {
-        "liquidity" => Ok(GraphDataParams {
-            data_type: GraphDataType::LiquidityDistribution,
-            pool_address: query.pool_address.as_ref().map(|s| s.as_str()),
-            token0_symbol: None,
-            token1_symbol: None,
-            interval: None,
-            limit: None,
-        }),
-        "candles" => Ok(GraphDataParams {
-            data_type: GraphDataType::PriceCandles,
-            pool_address: None,
-            token0_symbol: query.token0.as_ref().map(|s| s.as_str()),
-            token1_symbol: query.token1.as_ref().map(|s| s.as_str()),
-            interval: query.interval.as_ref().map(|s| s.as_str()),
-            limit: query.limit,
-        }),
-        _ => Err(HttpResponse::BadRequest()
-            .body("Invalid 'type' parameter. Use 'liquidity' or 'candles'.")),
-    };
-
-    let params = match params_result {
-        Ok(p) => p,
-        Err(e) => return e,
-    };
-
-    match data_for_graphs_service::get_graph_data(params).await {
+#[get("/liquidity-chart")]
+pub async fn get_graph_data_handler(query: web::Query<LiquidityDataQuery>) -> impl Responder {
+    match data_service::get_graph_data(&query.pool_address).await {
         Ok(data) => HttpResponse::Ok().json(data),
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
+}
+
+// --- Token Pair Price History Handler ---
+#[get("/price-chart/{token0}/{token1}")]
+pub async fn get_token_pair_price_history(
+    path: web::Path<(String, String)>,
+    query: web::Query<PriceHistoryQuery>,
+) -> impl Responder {
+    let (token0, token1) = path.into_inner();
+    let interval = query.interval.unwrap_or(15);
+    let limit = query.limit.unwrap_or(200);
+
+    match data_service::get_kline_data(&token0, &token1, interval, limit).await {
+        Ok(kline_data) => HttpResponse::Ok().json(kline_data),
+        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
+    }
+}
+
+#[derive(Deserialize)]
+pub struct PriceHistoryQuery {
+    pub interval: Option<u32>,
+    pub limit: Option<u32>,
 }
 
 // --- Prompt Handler ---
@@ -101,31 +95,9 @@ pub async fn get_pools_handler() -> impl Responder {
     }
 }
 
-// --- Token Pair Price History Handler ---
-#[get("/{token0}/{token1}/price-history")]
-pub async fn get_token_pair_price_history(
-    path: web::Path<(String, String)>,
-    query: web::Query<PriceHistoryQuery>,
-) -> impl Responder {
-    let (token0, token1) = path.into_inner();
-    let interval = query.interval.unwrap_or(15);
-    let limit = query.limit.unwrap_or(200);
-
-    match kline_service::get_kline_data(&token0, &token1, interval, limit).await {
-        Ok(kline_data) => HttpResponse::Ok().json(kline_data),
-        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
-    }
-}
-
-#[derive(Deserialize)]
-pub struct PriceHistoryQuery {
-    pub interval: Option<u32>,
-    pub limit: Option<u32>,
-}
-
 // --- Price History Tool for AI Agent Handler ---
 #[get("/price-history")]
-pub async fn get_price_history(query: web::Query<PriceHistoryRequest>) -> impl Responder {
+pub async fn get_price_history_tool(query: web::Query<PriceHistoryRequest>) -> impl Responder {
     info!(
         "📊 Price history request: {}/{} (interval: {}min, limit: {})",
         query.token0,
@@ -147,17 +119,13 @@ pub async fn get_price_history(query: web::Query<PriceHistoryRequest>) -> impl R
         }));
     }
 
-    // Create service and process request
-    let service = PriceHistoryService::new();
-
-    match service
-        .get_price_history_analysis(
-            &query.token0,
-            &query.token1,
-            query.interval.unwrap_or(1440),
-            query.limit.unwrap_or(200),
-        )
-        .await
+    match price_history_tool_service::get_price_history_analysis(
+        &query.token0,
+        &query.token1,
+        query.interval.unwrap_or(1440),
+        query.limit.unwrap_or(200),
+    )
+    .await
     {
         Ok(result) => {
             info!(

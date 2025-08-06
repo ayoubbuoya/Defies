@@ -3,7 +3,6 @@ target/
 Cargo.lock
 *.lock
 backend/
-test.html
 
 # Environment variables
 .env

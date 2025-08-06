@@ -1,34 +1,27 @@
-// we are using the binance API to fetch price data
-use crate::config::price_fetch_api_base_url;
-use crate::models::price_history::PricePoint;
+use crate::domain::repositories::data_provider::DataProvider;
+use crate::domain::services::data::UnifiedPool;
+use crate::dtos::price_history::PricePoint;
+use crate::{config::binance_api_base_url, service::liquidity_service::ActiveLiquidityResponse};
 use anyhow::{Result, anyhow};
+use async_trait::async_trait;
 use reqwest;
 use tracing::{debug, error, info};
 
 #[derive(Debug)]
-pub struct PriceDataClient {
+pub struct BinanceDataProvider {
     base_url: String,
     client: reqwest::Client,
 }
 
-impl Default for PriceDataClient {
+impl Default for BinanceDataProvider {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl PriceDataClient {
-    pub fn new() -> Self {
-        let base_url = price_fetch_api_base_url();
-
-        info!("🔗 Using API base URL from .env: {}", base_url);
-        Self {
-            base_url,
-            client: reqwest::Client::new(),
-        }
-    }
-
-    pub async fn fetch_kline_data(
+#[async_trait]
+impl DataProvider for BinanceDataProvider {
+    async fn get_price_data(
         &self,
         token0: &str,
         token1: &str,
@@ -93,7 +86,27 @@ impl PriceDataClient {
         Ok(price_points)
     }
 
-    fn convert_interval_to_binance(&self, interval_minutes: u32) -> String {
+    async fn get_liquidity_data(&self, _pool_address: &str) -> Result<ActiveLiquidityResponse> {
+        Err(anyhow!("Binance does not support liquidity data retrieval"))
+    }
+
+    async fn get_pool_list(&self) -> Result<Vec<UnifiedPool>> {
+        Err(anyhow!("Binance does not support pool list retrieval"))
+    }
+}
+
+impl BinanceDataProvider {
+    pub fn new() -> Self {
+        let base_url = binance_api_base_url();
+
+        info!("🔗 Using API base URL from .env: {}", base_url);
+        Self {
+            base_url,
+            client: reqwest::Client::new(),
+        }
+    }
+
+    pub fn convert_interval_to_binance(&self, interval_minutes: u32) -> String {
         match interval_minutes {
             1 => "1m".to_string(),
             3 => "3m".to_string(),
@@ -114,7 +127,7 @@ impl PriceDataClient {
         }
     }
 
-    fn convert_binance_to_price_points(
+    pub fn convert_binance_to_price_points(
         &self,
         data_array: Vec<serde_json::Value>,
     ) -> Result<Vec<PricePoint>> {
@@ -139,7 +152,7 @@ impl PriceDataClient {
         Ok(points)
     }
 
-    fn parse_binance_kline(&self, item: &serde_json::Value) -> Result<PricePoint> {
+    pub fn parse_binance_kline(&self, item: &serde_json::Value) -> Result<PricePoint> {
         let array = item
             .as_array()
             .ok_or_else(|| anyhow!("Binance kline item is not an array"))?;

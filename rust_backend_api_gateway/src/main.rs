@@ -1,13 +1,13 @@
 use actix_cors::Cors;
-use actix_web::{App, HttpServer, middleware::Logger};
+use actix_web::{App, HttpServer};
 use tracing_actix_web::TracingLogger;
 
 mod api;
 mod config;
 mod domain;
+mod dtos;
 mod infrastructure;
 mod math;
-mod models;
 mod service;
 
 use api::routes::init_routes;
@@ -25,16 +25,14 @@ async fn main() -> std::io::Result<()> {
             .max_age(3600)
             .supports_credentials();
 
-
-
         App::new()
             .wrap(cors)
             // This TracingLogger replaces the old Logger::default()
             // and integrates with the tracing system.
-            .wrap(TracingLogger::default()) 
+            .wrap(TracingLogger::default())
             .configure(init_routes)
     })
-    .bind("127.0.0.1:8081")?
+    .bind("127.0.0.1:8080")?
     .run()
     .await
 }
