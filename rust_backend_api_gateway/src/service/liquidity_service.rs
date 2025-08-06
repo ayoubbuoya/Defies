@@ -1,3 +1,4 @@
+use crate::domain::services::data::LiquidityTick;
 use crate::math::math::{align_to_tick_spacing, price1_to_tick};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -53,14 +54,6 @@ pub struct KlineResponse {
     pub data: Vec<Vec<f64>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub struct LiquidityTick {
-    pub tick_idx: String,
-    pub liquidity_net: String,
-    pub price0: String,
-    pub price1: String,
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ActiveLiquidity {
     pub tick: String,
@@ -89,7 +82,8 @@ fn create_client() -> Result<reqwest::Client, reqwest::Error> {
 
 pub async fn get_token_list() -> Result<Vec<Token>, Box<dyn Error>> {
     let client = create_client()?;
-    let url = "https://asia-southeast1-ktx-finance-2.cloudfunctions.net/sailor_poolapi/getTokenListV2";
+    let url =
+        "https://asia-southeast1-ktx-finance-2.cloudfunctions.net/sailor_poolapi/getTokenListV2";
     let tokens: Vec<Token> = client.get(url).send().await?.json().await?;
     Ok(tokens)
 }
@@ -97,12 +91,20 @@ pub async fn get_token_list() -> Result<Vec<Token>, Box<dyn Error>> {
 pub async fn get_price_list(token_addresses: Vec<&str>) -> Result<Vec<Price>, Box<dyn Error>> {
     let client = create_client()?;
     let addresses = token_addresses.join(",");
-    let url = format!("https://asia-southeast1-ktx-finance-2.cloudfunctions.net/sailor_poolapi/getPriceList?tokens={}", addresses);
+    let url = format!(
+        "https://asia-southeast1-ktx-finance-2.cloudfunctions.net/sailor_poolapi/getPriceList?tokens={}",
+        addresses
+    );
     let prices: Vec<Price> = client.get(&url).send().await?.json().await?;
     Ok(prices)
 }
 
-pub async fn get_kline_data(token0_symbol: &str, token1_symbol: &str, interval: &str, limit: u32) -> Result<KlineResponse, Box<dyn Error>> {
+pub async fn get_kline_data(
+    token0_symbol: &str,
+    token1_symbol: &str,
+    interval: &str,
+    limit: u32,
+) -> Result<KlineResponse, Box<dyn Error>> {
     let client = create_client()?;
     let url = format!(
         "https://asia-southeast1-ktx-finance-2.cloudfunctions.net/sailor_kline_api/smart_kline/{}/{}?interval={}&limit={}",
@@ -115,16 +117,24 @@ pub async fn get_kline_data(token0_symbol: &str, token1_symbol: &str, interval: 
     Ok(kline_data)
 }
 
-pub async fn get_active_liquidity(pool_address: &str) -> Result<ActiveLiquidityResponse, Box<dyn Error>> {
+pub async fn get_sailor_liquidity(
+    pool_address: &str,
+) -> Result<ActiveLiquidityResponse, Box<dyn Error>> {
     let client = create_client()?;
-    let url = format!("https://asia-southeast1-ktx-finance-2.cloudfunctions.net/sailor_poolapi/getActiveLiquidity?address={}", pool_address);
+    let url = format!(
+        "https://asia-southeast1-ktx-finance-2.cloudfunctions.net/sailor_poolapi/getActiveLiquidity?address={}",
+        pool_address
+    );
     let response = client.get(&url).send().await?.error_for_status()?;
     let body_text = response.text().await?;
-    
-    let liquidity_data: ActiveLiquidityResponse = serde_json::from_str(&body_text)
-        .map_err(|e| -> Box<dyn Error> {
+
+    let liquidity_data: ActiveLiquidityResponse =
+        serde_json::from_str(&body_text).map_err(|e| -> Box<dyn Error> {
             Box::new(ApiError {
-                message: format!("Failed to parse API response. Error: {}. Raw Body: {}", e, body_text),
+                message: format!(
+                    "Failed to parse API response. Error: {}. Raw Body: {}",
+                    e, body_text
+                ),
             })
         })?;
 
@@ -139,7 +149,7 @@ pub async fn get_optimal_liquidity_range(
     let (lower_price, upper_price) = calculate_price_range_from_kline(&kline_data.data);
     let lower_tick = price1_to_tick(lower_price, token0.get_decimals(), token1.get_decimals());
     let upper_tick = price1_to_tick(upper_price, token0.get_decimals(), token1.get_decimals());
-    let tick_spacing = 60; 
+    let tick_spacing = 60;
     let aligned_lower_tick = align_to_tick_spacing(lower_tick, tick_spacing);
     let aligned_upper_tick = align_to_tick_spacing(upper_tick, tick_spacing);
     Ok((aligned_lower_tick, aligned_upper_tick))

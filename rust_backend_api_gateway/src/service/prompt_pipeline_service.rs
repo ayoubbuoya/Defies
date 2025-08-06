@@ -2,8 +2,6 @@ use reqwest;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 
-// --- Public Structs ---
-
 /// Represents the request body to be sent to the Node.js backend.
 #[derive(Debug, Serialize)]
 struct NodeJsRequest<'a> {
@@ -16,8 +14,6 @@ struct NodeJsRequest<'a> {
 pub struct NodeJsResponse {
     pub answer: serde_json::Value, // Changed to Value to handle both string and object
 }
-
-// --- Public Service Function ---
 
 /// Sends a prompt to the Node.js backend and returns the response as-is.
 pub async fn forward_prompt_to_backend(

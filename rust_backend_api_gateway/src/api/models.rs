@@ -1,27 +1,16 @@
 use serde::{Deserialize, Serialize};
 
-/// Deserializes the query parameters from the /graph-data endpoint.
 #[derive(Deserialize)]
-pub struct GraphDataQuery {
-    #[serde(rename = "type")]
-    pub graph_type: String, // "liquidity" or "candles"
-    pub pool_address: Option<String>,
-    pub token0: Option<String>,
-    pub token1: Option<String>,
-    pub interval: Option<String>,
-    pub limit: Option<u32>,
+pub struct LiquidityDataQuery {
+    pub pool_address: String,
 }
 
-// --- New Prompt Pipeline Models ---
-
-/// Deserializes the JSON body for a prompt request.
 #[derive(Deserialize)]
 pub struct PromptRequest {
     pub prompt: String,
     pub address: String,
 }
 
-/// Serializes the response from the LLM service.
 #[derive(Serialize)]
 pub struct PromptResponse {
     pub response_text: String,

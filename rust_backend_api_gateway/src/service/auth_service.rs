@@ -1,7 +1,7 @@
-use crate::domain::jwt::JwtEncoder;
+use crate::domain::repositories::jwt::JwtEncoder;
+use crate::dtos::auth::AuthRequest;
 use crate::infrastructure::jwt::Hs256Jwt;
 use crate::infrastructure::wallet::get_verifier;
-use crate::models::auth::AuthRequest;
 use actix_web::HttpResponse;
 
 pub fn handle_auth(data: AuthRequest) -> Result<String, HttpResponse> {

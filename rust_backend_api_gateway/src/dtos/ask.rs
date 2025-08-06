@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 // Represents the request body received by the Rust backend
 #[derive(Debug, Deserialize)]
