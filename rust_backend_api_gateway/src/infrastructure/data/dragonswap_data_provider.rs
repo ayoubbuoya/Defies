@@ -1,12 +1,13 @@
 use crate::domain::repositories::data_provider::DataProvider;
 use crate::domain::repositories::dex_provider::DexProvider;
 
+use crate::config::dragonswap_api_base_url;
+use crate::domain::services::data::ActiveLiquidityResponse;
 use crate::domain::services::data::{
     DragonSwapPool, DragonSwapResponse, DragonSwapTicksResponse, DragonSwapToken, LiquidityTick,
     UnifiedPool,
 };
 use crate::dtos::price_history::PricePoint;
-use crate::{config::dragonswap_api_base_url, service::liquidity_service::ActiveLiquidityResponse};
 use anyhow::{Result, anyhow};
 use async_trait::async_trait;
 use reqwest;

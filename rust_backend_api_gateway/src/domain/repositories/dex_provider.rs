@@ -1,6 +1,6 @@
 use crate::domain::repositories::data_provider::DataProvider;
+use crate::domain::services::data::ActiveLiquidityResponse;
 use crate::domain::services::data::UnifiedPool;
-use crate::service::liquidity_service::ActiveLiquidityResponse;
 use anyhow::Result;
 use async_trait::async_trait;
 

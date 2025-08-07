@@ -143,3 +143,20 @@ pub struct SailorPoolListResponse {
     pub daily_protocol_tvl: Option<SailorDailyProtocolTvl>,
     pub pool_stats: Vec<SailorPoolStats>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ActiveLiquidity {
+    pub tick: String,
+    pub price: f64,
+    pub liquidity: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct ActiveLiquidityResponse {
+    #[serde(default)]
+    pub status: String,
+    #[serde(default)]
+    pub active_liquidity: Vec<ActiveLiquidity>,
+    #[serde(default)]
+    pub data: Vec<LiquidityTick>,
+}
