@@ -1,4 +1,4 @@
-use crate::domain::repositories::data_provider::DataProvider;
+use crate::domain::repositories::dex_provider::DexProvider;
 use crate::{
     domain::services::data::UnifiedPool,
     infrastructure::data::{

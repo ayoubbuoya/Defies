@@ -1,4 +1,6 @@
 use crate::domain::repositories::data_provider::DataProvider;
+use crate::domain::repositories::dex_provider::DexProvider;
+
 use crate::domain::services::data::{
     KlineResponse, SailorPoolListResponse, SailorPoolStats, UnifiedPool,
 };
@@ -56,7 +58,10 @@ impl DataProvider for SailorDataProvider {
 
         Ok(parsed_response)
     }
+}
 
+#[async_trait]
+impl DexProvider for SailorDataProvider {
     async fn get_liquidity_data(&self, pool_address: &str) -> Result<ActiveLiquidityResponse> {
         Err(anyhow!("sailor does not support liquidity data retrieval"))
     }

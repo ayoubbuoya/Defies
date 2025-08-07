@@ -1,4 +1,5 @@
 use crate::domain::repositories::data_provider::DataProvider;
+use crate::domain::repositories::dex_provider::DexProvider;
 use crate::dtos::price_history::PricePoint;
 use crate::infrastructure::data::sailor_data_provider::SailorDataProvider;
 use crate::{

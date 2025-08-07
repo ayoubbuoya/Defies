@@ -85,14 +85,6 @@ impl DataProvider for BinanceDataProvider {
 
         Ok(price_points)
     }
-
-    async fn get_liquidity_data(&self, _pool_address: &str) -> Result<ActiveLiquidityResponse> {
-        Err(anyhow!("Binance does not support liquidity data retrieval"))
-    }
-
-    async fn get_pool_list(&self) -> Result<Vec<UnifiedPool>> {
-        Err(anyhow!("Binance does not support pool list retrieval"))
-    }
 }
 
 impl BinanceDataProvider {
