@@ -13,7 +13,4 @@ pub trait DataProvider {
         interval: u32, // Interval in minutes
         limit: u32,
     ) -> Result<Vec<PricePoint>>;
-    async fn get_liquidity_data(&self, pool_address: &str) -> Result<ActiveLiquidityResponse>;
-
-    async fn get_pool_list(&self) -> Result<Vec<UnifiedPool>>;
 }

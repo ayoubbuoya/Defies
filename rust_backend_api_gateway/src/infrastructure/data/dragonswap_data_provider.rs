@@ -1,4 +1,6 @@
 use crate::domain::repositories::data_provider::DataProvider;
+use crate::domain::repositories::dex_provider::DexProvider;
+
 use crate::domain::services::data::{
     DragonSwapPool, DragonSwapResponse, DragonSwapTicksResponse, DragonSwapToken, LiquidityTick,
     UnifiedPool,
@@ -23,6 +25,7 @@ impl Default for DragonSwapDataProvider {
     }
 }
 
+// First implement DataProvider
 #[async_trait]
 impl DataProvider for DragonSwapDataProvider {
     async fn get_price_data(
@@ -34,7 +37,11 @@ impl DataProvider for DragonSwapDataProvider {
     ) -> Result<Vec<PricePoint>> {
         Err(anyhow!("dragonswap does not support price data retrieval"))
     }
+}
 
+// Then implement DexProvider (which extends DataProvider)
+#[async_trait]
+impl DexProvider for DragonSwapDataProvider {
     async fn get_liquidity_data(&self, pool_address: &str) -> Result<ActiveLiquidityResponse> {
         let url = format!(
             "{}/graph/factory/ticks?pool_address={}&skip=0",
