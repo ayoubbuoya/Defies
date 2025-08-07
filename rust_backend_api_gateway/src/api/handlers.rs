@@ -54,7 +54,7 @@ pub struct PriceHistoryQuery {
 // --- Prompt Handler ---
 #[post("/ask")]
 pub async fn prompt_handler(data: web::Json<PromptRequest>) -> impl Responder {
-    let nodejs_backend_url = format!("{}ask", mcp_client_base_url());
+    let nodejs_backend_url = format!("{}/ask", mcp_client_base_url());
 
     println!("🔥 Received request:");
     println!("   Prompt: {}", data.prompt);
