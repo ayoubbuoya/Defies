@@ -165,7 +165,9 @@ export function EnhancedLiquidityProvider() {
                                     ) : (
                                         <PoolPriceHistoryChart
                                             currentPrice={currentPrice}
-                                            tokenPair={`${pool?.token0_symbol}/${pool?.token1_symbol}`}
+                                            token0={pool.token0_symbol}
+                                            token1={pool.token1_symbol}
+                                            priceRange={priceRange as [number, number]}
                                         />
                                     )}
                                 </div>
