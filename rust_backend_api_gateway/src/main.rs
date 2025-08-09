@@ -1,6 +1,9 @@
 use actix_cors::Cors;
-use actix_web::{App, HttpServer};
+use actix_web::{App, HttpServer, web};
 use tracing_actix_web::TracingLogger;
+use sea_orm::{Database, DatabaseConnection};
+use dotenvy::dotenv;
+use std::env;
 
 mod api;
 mod config;
@@ -19,21 +22,42 @@ async fn main() -> std::io::Result<()> {
         .with_max_level(tracing::Level::INFO)
         .with_test_writer()
         .init();
+    
+    // --- DATABASE CONNECTION SETUP ---
+    // Load environment variables from .env file
+    dotenv().ok();
+    
+    // Get database URL from environment variable
+    let database_url = env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set in .env file");
+    
+    // Establish database connection
+    let db_connection: DatabaseConnection = match Database::connect(&database_url).await {
+        Ok(db) => {
+            println!("Successfully connected to database!");
+            db
+        },
+        Err(e) => {
+            eprintln!("Failed to connect to database: {:?}", e);
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to connect to database: {}", e),
+            ));
+        }
+    };
+    // --- END DATABASE CONNECTION SETUP ---
 
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         let cors = Cors::default()
-            // In production, you should restrict this to your frontend's domain
-            // e.g., .allowed_origin("http://localhost:3000")
-            .allow_any_origin() 
-            .allowed_methods(vec!["GET", "POST"])
+            .allow_any_origin()
+            .allowed_methods(vec!["GET", "POST", "DELETE"]) // Add "DELETE" method
             .allow_any_header()
             .max_age(3600);
 
         App::new()
+            .app_data(web::Data::new(db_connection.clone())) // Add database connection to app state
             .wrap(cors)
-            // This TracingLogger replaces the old Logger::default()
-            // and integrates with the tracing system.
-            .wrap(TracingLogger::default()) 
+            .wrap(TracingLogger::default())
             .configure(init_routes)
     })
     .bind("127.0.0.1:8081")?
