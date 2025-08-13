@@ -2,7 +2,7 @@ use crate::domain::repositories::data_provider::DataProvider;
 use crate::domain::repositories::dex_provider::DexProvider;
 
 use crate::config::sailor_api_base_url;
-use crate::domain::services::data::{ActiveLiquidityResponse, LiquidityTick};
+use crate::domain::services::data::{ActiveLiquidityResponse, LiquidityTick, Token};
 use crate::domain::services::data::{
     KlineResponse, SailorPoolListResponse, SailorPoolStats, UnifiedPool,
 };
@@ -103,6 +103,7 @@ impl DexProvider for SailorDataProvider {
             ..Default::default()
         })
     }
+
     async fn get_pool_list(&self) -> Result<Vec<UnifiedPool>> {
         let mut unified_pools: Vec<UnifiedPool> = Vec::new();
 
@@ -166,8 +167,16 @@ impl SailorDataProvider {
         UnifiedPool {
             id: pool.id,
             protocol: "Sailor".to_string(),
-            token0_symbol: pool.token0.symbol,
-            token1_symbol: pool.token1.symbol,
+            token0: Token {
+                address: pool.token0.id,
+                symbol: pool.token0.symbol,
+                decimals: pool.token0.decimals,
+            },
+            token1: Token {
+                address: pool.token1.id,
+                symbol: pool.token1.symbol,
+                decimals: pool.token1.decimals,
+            },
             tvl: pool.tvl,
             daily_volume: pool.day.volume,
             apr: Some(apr),

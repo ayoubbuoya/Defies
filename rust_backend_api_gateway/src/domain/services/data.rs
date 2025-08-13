@@ -42,8 +42,8 @@ pub struct KlineResponse {
 pub struct UnifiedPool {
     pub id: String,
     pub protocol: String,
-    pub token0_symbol: String,
-    pub token1_symbol: String,
+    pub token0: Token,
+    pub token1: Token,
     pub tvl: Option<f64>,
     pub daily_volume: Option<f64>,
     pub apr: Option<f64>,
@@ -100,10 +100,8 @@ pub struct SailorTokenInfo {
     pub symbol: String,
     pub name: String,
     pub decimals: String,
-
     #[serde(alias = "token0Price", alias = "token1Price")]
     pub price: Option<String>,
-
     pub url: String,
 }
 
@@ -159,4 +157,11 @@ pub struct ActiveLiquidityResponse {
     pub active_liquidity: Vec<ActiveLiquidity>,
     #[serde(default)]
     pub data: Vec<LiquidityTick>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Token {
+    pub address: String,
+    pub symbol: String,
+    pub decimals: String,
 }

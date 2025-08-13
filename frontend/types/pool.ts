@@ -1,8 +1,10 @@
+import { Token } from "./token"
+
 export interface Pool {
     id: string
     protocol: string
-    token0_symbol: string
-    token1_symbol: string
+    token0: Token
+    token1: Token
     tvl: number
     daily_volume: number
     apr: number
