@@ -1,9 +1,10 @@
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
-use tracing_actix_web::TracingLogger;
-use sea_orm::{Database, DatabaseConnection};
 use dotenvy::dotenv;
+use sea_orm::{Database, DatabaseConnection};
 use std::env;
+use tracing_actix_web::TracingLogger;
+use tracing_subscriber::EnvFilter;
 
 mod api;
 mod config;
@@ -20,25 +21,24 @@ async fn main() -> std::io::Result<()> {
     // This sets up a logger that will print all trace, debug, info, etc.
     // messages to your console.
     tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
         .with_max_level(tracing::Level::INFO)
         .with_test_writer()
         .init();
-    
+
     // --- DATABASE CONNECTION SETUP ---
     // Load environment variables from .env file
     dotenv::dotenv().ok();
-    env_logger::init();
-    
+
     // Get database URL from environment variable
-    let database_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set in .env file");
-    
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");
+
     // Establish database connection
     let db_connection: DatabaseConnection = match Database::connect(&database_url).await {
         Ok(db) => {
             println!("Successfully connected to database!");
             db
-        },
+        }
         Err(e) => {
             eprintln!("Failed to connect to database: {:?}", e);
             return Err(std::io::Error::new(
@@ -49,13 +49,10 @@ async fn main() -> std::io::Result<()> {
     };
     // --- END DATABASE CONNECTION SETUP ---
 
-
     HttpServer::new(move || {
         let cors = Cors::default()
             .allow_any_origin()
-
-            .allowed_methods(vec!["GET", "POST", "DELETE"]) 
-
+            .allowed_methods(vec!["GET", "POST", "DELETE"])
             .allow_any_header()
             .max_age(3600)
             .supports_credentials();
@@ -63,10 +60,8 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(db_connection.clone())) // Add database connection to app state
             .wrap(cors)
-
             // This TracingLogger replaces the old Logger::default()
             // and integrates with the tracing system.
-
             .wrap(TracingLogger::default())
             .configure(init_routes)
     })
