@@ -24,11 +24,11 @@ export const PoolHeader = ({ pool, className = "" }: PoolHeaderProps) => (
 
         {/* Pair */}
         <div className="flex items-center space-x-2">
-            <span className="text-2xl">{getTokenLogo(pool.token0_symbol)}</span>
-            <span className="text-xl font-bold text-white">{pool.token0_symbol}</span>
+            <span className="text-2xl">{getTokenLogo(pool.token0.symbol)}</span>
+            <span className="text-xl font-bold text-white">{pool.token0.symbol}</span>
             <div className="text-gray-400 text-lg">/</div>
-            <span className="text-2xl">{getTokenLogo(pool.token1_symbol)}</span>
-            <span className="text-xl font-bold text-white">{pool.token1_symbol}</span>
+            <span className="text-2xl">{getTokenLogo(pool.token1.symbol)}</span>
+            <span className="text-xl font-bold text-white">{pool.token1.symbol}</span>
         </div>
 
         {/* Fee Tier */}

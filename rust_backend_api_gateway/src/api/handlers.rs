@@ -2,6 +2,7 @@ use crate::api::models::{LiquidityDataQuery, PromptRequest};
 use crate::config::mcp_client_base_url;
 use crate::dtos::auth::{AuthRequest, AuthResponse};
 use crate::dtos::price_history::PriceHistoryRequest;
+use crate::service::token_service;
 use crate::service::{
     auth_service,
     data_service::{self},
@@ -54,7 +55,7 @@ pub struct PriceHistoryQuery {
 // --- Prompt Handler ---
 #[post("/ask")]
 pub async fn prompt_handler(data: web::Json<PromptRequest>) -> impl Responder {
-    let nodejs_backend_url = format!("{}ask", mcp_client_base_url());
+    let nodejs_backend_url = format!("{}/ask", mcp_client_base_url());
 
     println!("🔥 Received request:");
     println!("   Prompt: {}", data.prompt);
@@ -89,6 +90,19 @@ pub async fn get_pools_handler() -> impl Responder {
         Err(e) => {
             // Add this log to see the real error in your terminal
             eprintln!("Error fetching pool list: {:?}", e);
+            HttpResponse::InternalServerError()
+                .body("An internal error occurred. Please check server logs.")
+        }
+    }
+}
+
+#[get("/token/{address}")]
+pub async fn get_token_symbol_handler(path: web::Path<String>) -> impl Responder {
+    let address = path.into_inner();
+    match token_service::get_token_symbol(&address).await {
+        Ok(symbol) => HttpResponse::Ok().json(symbol),
+        Err(e) => {
+            eprintln!("Error fetching token symbol: {:?}", e);
             HttpResponse::InternalServerError()
                 .body("An internal error occurred. Please check server logs.")
         }

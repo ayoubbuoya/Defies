@@ -1,12 +1,14 @@
 use crate::domain::repositories::data_provider::DataProvider;
 use crate::domain::repositories::dex_provider::DexProvider;
 
+use crate::config::sailor_api_base_url;
+use crate::domain::services::data::{ActiveLiquidityResponse, LiquidityTick, Token};
 use crate::domain::services::data::{
     KlineResponse, SailorPoolListResponse, SailorPoolStats, UnifiedPool,
 };
 use crate::dtos::price_history::PricePoint;
-use crate::{config::sailor_api_base_url, service::liquidity_service::ActiveLiquidityResponse};
-use anyhow::{Result, anyhow};
+
+use anyhow::Result;
 use async_trait::async_trait;
 use reqwest;
 use tracing::info;
@@ -29,7 +31,7 @@ impl DataProvider for SailorDataProvider {
         &self,
         token0: &str,
         token1: &str,
-        interval: u32, // Interval in minutes
+        interval: u32,
         limit: u32,
     ) -> Result<Vec<PricePoint>> {
         let url = format!(
@@ -63,7 +65,43 @@ impl DataProvider for SailorDataProvider {
 #[async_trait]
 impl DexProvider for SailorDataProvider {
     async fn get_liquidity_data(&self, pool_address: &str) -> Result<ActiveLiquidityResponse> {
-        Err(anyhow!("sailor does not support liquidity data retrieval"))
+        let url = format!(
+            "{}/sailor_poolapi/getActiveLiquidity?address={}",
+            self.base_url, pool_address
+        );
+
+        info!("Fetching Sailor liquidity data from: {}", url);
+
+        let response = self.client.get(&url).send().await?.error_for_status()?;
+        let body_text = response.text().await?;
+
+        let sailor_response: ActiveLiquidityResponse =
+            serde_json::from_str(&body_text).map_err(|e| {
+                anyhow::anyhow!(
+                    "Failed to parse Sailor API response. Error: {}. Raw Body: {}",
+                    e,
+                    body_text
+                )
+            })?;
+
+        // Transform ActiveLiquidity to LiquidityTick format
+        let ticks: Vec<LiquidityTick> = sailor_response
+            .active_liquidity
+            .into_iter()
+            .map(|active_liq| LiquidityTick {
+                tick_idx: active_liq.tick,
+                liquidity_net: active_liq.liquidity,
+                price0: active_liq.price.to_string(),
+                price1: "0".to_string(), // Sailor API doesn't provide price1, using default
+            })
+            .collect();
+
+        Ok(ActiveLiquidityResponse {
+            status: sailor_response.status,
+            data: ticks,
+            active_liquidity: Vec::new(), // Clear this since we've moved data to 'data' field
+            ..Default::default()
+        })
     }
 
     async fn get_pool_list(&self) -> Result<Vec<UnifiedPool>> {
@@ -129,8 +167,16 @@ impl SailorDataProvider {
         UnifiedPool {
             id: pool.id,
             protocol: "Sailor".to_string(),
-            token0_symbol: pool.token0.symbol,
-            token1_symbol: pool.token1.symbol,
+            token0: Token {
+                address: pool.token0.id,
+                symbol: pool.token0.symbol,
+                decimals: pool.token0.decimals,
+            },
+            token1: Token {
+                address: pool.token1.id,
+                symbol: pool.token1.symbol,
+                decimals: pool.token1.decimals,
+            },
             tvl: pool.tvl,
             daily_volume: pool.day.volume,
             apr: Some(apr),

@@ -1,9 +1,12 @@
 // src/api/routes.rs
 
 // Add get_pools_handler to your use statement
-use crate::api::handlers::{
-    get_graph_data_handler, get_pools_handler, get_price_history_tool,
-    get_token_pair_price_history, prompt_handler, verify_signature,
+use crate::{
+    api::handlers::{
+        get_graph_data_handler, get_pools_handler, get_price_history_tool,
+        get_token_pair_price_history, get_token_symbol_handler, prompt_handler, verify_signature,
+    },
+    service,
 };
 use actix_web::web;
 
@@ -18,7 +21,8 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
         web::scope("/data")
             .service(get_graph_data_handler)
             .service(get_pools_handler)
-            .service(get_token_pair_price_history),
+            .service(get_token_pair_price_history)
+            .service(get_token_symbol_handler),
     );
 
     // Agent/LLM routes

@@ -1,12 +1,14 @@
 use crate::domain::repositories::data_provider::DataProvider;
 use crate::domain::repositories::dex_provider::DexProvider;
+use futures::future::join_all;
 
+use crate::config::dragonswap_api_base_url;
+use crate::domain::services::data::{ActiveLiquidityResponse, Token};
 use crate::domain::services::data::{
     DragonSwapPool, DragonSwapResponse, DragonSwapTicksResponse, DragonSwapToken, LiquidityTick,
     UnifiedPool,
 };
 use crate::dtos::price_history::PricePoint;
-use crate::{config::dragonswap_api_base_url, service::liquidity_service::ActiveLiquidityResponse};
 use anyhow::{Result, anyhow};
 use async_trait::async_trait;
 use reqwest;
@@ -73,36 +75,25 @@ impl DexProvider for DragonSwapDataProvider {
     }
 
     async fn get_pool_list(&self) -> Result<Vec<UnifiedPool>> {
-        let mut unified_pools: Vec<UnifiedPool> = Vec::new();
-
         let url = format!("{}/pools", self.base_url);
         let response = self.client.get(&url).send().await?;
 
-        if response.status().is_success() {
-            match response.json::<DragonSwapResponse>().await {
-                Ok(dragonswap_data) => {
-                    let token_map: HashMap<String, DragonSwapToken> = dragonswap_data
-                        .tokens
-                        .into_iter()
-                        .map(|token| (token.address.clone(), token))
-                        .collect();
-
-                    let transformed = dragonswap_data
-                        .pools
-                        .into_iter()
-                        .filter(|pool| pool.pool_type == "V3_POOL")
-                        .filter_map(|pool| {
-                            DragonSwapDataProvider::transform_dragonswap_pool(pool, &token_map)
-                        })
-                        .filter(|pool| pool.daily_volume.unwrap_or(0.0) > 1000.0);
-
-                    unified_pools.extend(transformed);
-                }
-                Err(e) => eprintln!("Failed to parse DragonSwap JSON: {}", e),
-            }
+        if !response.status().is_success() {
+            return Ok(vec![]);
         }
 
-        Ok(unified_pools)
+        let dragonswap_data: DragonSwapResponse = response.json().await?;
+
+        let futures = dragonswap_data
+            .pools
+            .into_iter()
+            .filter(|pool| pool.pool_type == "V3_POOL")
+            .filter(|pool| pool.daily_volume.unwrap_or(0.0) > 1000.0)
+            .map(|pool| self.transform_dragonswap_pool(pool));
+
+        let results = join_all(futures).await;
+
+        Ok(results.into_iter().flatten().collect())
     }
 }
 
@@ -133,20 +124,23 @@ impl DragonSwapDataProvider {
 
     /// Converts a pool from the DragonSwap format to our unified format.
     /// Returns an `Option` so we can easily skip pools if token data is missing.
-    fn transform_dragonswap_pool(
-        pool: DragonSwapPool,
-        token_map: &HashMap<String, DragonSwapToken>,
-    ) -> Option<UnifiedPool> {
-        // Find the token details in our HashMap. If either token isn't found, we can't proceed.
-        let token0 = token_map.get(&pool.token0_address)?;
-        let token1 = token_map.get(&pool.token1_address)?;
+    async fn transform_dragonswap_pool(&self, pool: DragonSwapPool) -> Option<UnifiedPool> {
+        let token0 = self
+            .transform_token_address_to_symbol(&pool.token0_address)
+            .await
+            .ok()?;
+
+        let token1 = self
+            .transform_token_address_to_symbol(&pool.token1_address)
+            .await
+            .ok()?;
 
         Some(UnifiedPool {
             id: pool.pool_address,
             protocol: "DragonSwap".to_string(),
-            token0_symbol: token0.symbol.clone(),
-            token1_symbol: token1.symbol.clone(),
-            tvl: pool.liquidity, // DragonSwap API does not provide TVL per pool directly
+            token0: token0,
+            token1: token1,
+            tvl: pool.liquidity,
             daily_volume: pool.daily_volume,
             apr: pool.apr,
             fee_tier: pool
@@ -154,5 +148,44 @@ impl DragonSwapDataProvider {
                 .map(|f| f.to_string())
                 .unwrap_or_else(|| "unknown".to_string()),
         })
+    }
+
+    pub async fn transform_token_address_to_symbol(&self, address: &str) -> Result<Token> {
+        let url = format!("{}/pools", self.base_url);
+        let response = self.client.get(&url).send().await?;
+
+        if !response.status().is_success() {
+            return Ok(Token {
+                address: address.to_string(),
+                symbol: "Unknown".to_string(),
+                decimals: 0.to_string(),
+            });
+        }
+
+        let dragonswap_data: DragonSwapResponse = response.json().await?;
+
+        let token_map: HashMap<String, DragonSwapToken> = dragonswap_data
+            .tokens
+            .into_iter()
+            .map(|token| (token.address.to_lowercase(), token))
+            .collect();
+
+        let token = token_map.get(&address.to_lowercase());
+
+        let result = if let Some(t) = token {
+            Token {
+                address: t.address.clone(),
+                symbol: t.symbol.clone(),
+                decimals: t.decimals.to_string(),
+            }
+        } else {
+            Token {
+                address: address.to_string(),
+                symbol: "Unknown".to_string(),
+                decimals: 0.to_string(),
+            }
+        };
+
+        Ok(result)
     }
 }

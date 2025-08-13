@@ -161,11 +161,14 @@ export function EnhancedLiquidityProvider() {
                                         <LiquidityDistributionChart
                                             currentPrice={currentPrice}
                                             priceRange={priceRange as [number, number]}
+                                            pool={pool}
                                         />
                                     ) : (
                                         <PoolPriceHistoryChart
                                             currentPrice={currentPrice}
-                                            tokenPair={`${pool?.token0_symbol}/${pool?.token1_symbol}`}
+                                            token0={pool.token0.symbol}
+                                            token1={pool.token1.symbol}
+                                            priceRange={priceRange as [number, number]}
                                         />
                                     )}
                                 </div>
@@ -242,7 +245,7 @@ export function EnhancedLiquidityProvider() {
                                 <div className="space-y-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                                            {pool?.token0_symbol} Amount
+                                            {pool?.token0.symbol} Amount
                                         </label>
                                         <div className="relative">
                                             <Input
@@ -257,15 +260,15 @@ export function EnhancedLiquidityProvider() {
                                             />
                                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
                                                 <span className="text-lg">{ }</span>
-                                                <span className="text-white font-medium">{pool.token0_symbol}</span>
+                                                <span className="text-white font-medium">{pool.token0.symbol}</span>
                                             </div>
                                         </div>
-                                        <div className="text-xs text-gray-400 mt-1">Balance: 1,234.56 {pool.token0_symbol}</div>
+                                        <div className="text-xs text-gray-400 mt-1">Balance: 1,234.56 {pool.token0.symbol}</div>
                                     </div>
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                                            {pool.token1_symbol} Amount
+                                            {pool.token1.symbol} Amount
                                         </label>
                                         <div className="relative">
                                             <Input
@@ -279,11 +282,10 @@ export function EnhancedLiquidityProvider() {
                                                 className="bg-gray-800/50 border-gray-700 text-white pr-16 h-12 text-lg"
                                             />
                                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-                                                <span className="text-lg">{ }</span>
-                                                <span className="text-white font-medium">{pool.token1_symbol}</span>
+                                                <span className="text-white font-medium">{pool.token1.symbol}</span>
                                             </div>
                                         </div>
-                                        <div className="text-xs text-gray-400 mt-1">Balance: 500.00 {pool.token1_symbol}</div>
+                                        <div className="text-xs text-gray-400 mt-1">Balance: 500.00 {pool.token1.symbol}</div>
                                     </div>
                                 </div>
 

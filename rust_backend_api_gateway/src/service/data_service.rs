@@ -1,11 +1,9 @@
 use crate::domain::repositories::data_provider::DataProvider;
 use crate::domain::repositories::dex_provider::DexProvider;
+use crate::domain::services::data::ActiveLiquidityResponse;
 use crate::dtos::price_history::PricePoint;
+use crate::infrastructure::data::dragonswap_data_provider::DragonSwapDataProvider;
 use crate::infrastructure::data::sailor_data_provider::SailorDataProvider;
-use crate::{
-    infrastructure::data::dragonswap_data_provider::DragonSwapDataProvider,
-    service::liquidity_service::{self, ActiveLiquidityResponse},
-};
 use anyhow::Result;
 use std::error::Error;
 use tracing::{error, info};
@@ -23,11 +21,14 @@ pub async fn get_graph_data(pool_address: &str) -> Result<ActiveLiquidityRespons
             Ok(liquidity_data)
         }
         Ok(false) => {
+            let sailor_data_provider = SailorDataProvider::new();
             info!(
                 "Pool {} is not a DragonSwap pool. Using sailor service.",
                 pool_address
             );
-            let liquidity_data = liquidity_service::get_sailor_liquidity(pool_address).await?;
+            let liquidity_data = sailor_data_provider
+                .get_liquidity_data(pool_address)
+                .await?;
             Ok(liquidity_data)
         }
         Err(e) => {

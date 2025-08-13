@@ -36,14 +36,14 @@ export function PoolsPage() {
     }, [pools])
 
     const pairOptions = useMemo(() => {
-        const pairs = [...new Set(pools.map(pool => `${pool.token0_symbol}/${pool.token1_symbol}`))]
+        const pairs = [...new Set(pools.map(pool => `${pool.token0.symbol}/${pool.token1.symbol}`))]
         return ["All Pairs", ...pairs.sort()]
     }, [pools])
 
     // Filter pools based on current filters
     const filteredPools = useMemo(() => {
         return pools.filter((pool) => {
-            const pair = `${pool.token0_symbol}/${pool.token1_symbol}`
+            const pair = `${pool.token0.symbol}/${pool.token1.symbol}`
 
             const matchesProtocol = selectedProtocol === "All Protocols" || pool.protocol === selectedProtocol
             const matchesFeeTier = selectedFeeTier === "All Fees" || `${pool.fee_tier}%` === selectedFeeTier
@@ -52,8 +52,8 @@ export function PoolsPage() {
                 searchQuery === "" ||
                 pair.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 pool.protocol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                pool.token0_symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                pool.token1_symbol.toLowerCase().includes(searchQuery.toLowerCase())
+                pool.token0.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                pool.token1.symbol.toLowerCase().includes(searchQuery.toLowerCase())
 
             return matchesProtocol && matchesFeeTier && matchesPair && matchesSearch
         })
@@ -312,7 +312,7 @@ export function PoolsPage() {
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="font-medium text-white">
-                                                    {pool.token0_symbol}/{pool.token1_symbol}
+                                                    {pool.token0.symbol}/{pool.token1.symbol}
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge variant="outline" className="bg-purple-500/20 text-purple-400 border-purple-500/30">
