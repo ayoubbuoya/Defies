@@ -1,50 +1,68 @@
-use serde::{Deserialize, Serialize};
 use reqwest;
+use serde::{Deserialize, Serialize};
 use std::error::Error;
 
-// --- Public Structs ---
-
-/// Represents the request body to be sent to the JS backend.
+/// Represents the request body to be sent to the Node.js backend.
 #[derive(Debug, Serialize)]
-struct PromptRequest<'a> {
+struct NodeJsRequest<'a> {
     prompt: &'a str,
+    address: &'a str,
 }
 
-/// Represents the expected response from the JS backend.
-/// This can be customized to match the actual response structure.
+/// Represents the expected response from the Node.js backend.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LLMResponse {
-    pub response_text: String,
-    // Add any other fields you expect from the JS backend
+pub struct NodeJsResponse {
+    pub answer: serde_json::Value, // Changed to Value to handle both string and object
 }
 
-// --- Public Service Function ---
-
-/// Sends a prompt to the JavaScript backend and returns the LLM's response.
-///
-/// # Arguments
-///
-/// * `prompt` - The user's text prompt.
-/// * `js_backend_url` - The URL of your Node.js service that handles the LLM communication.
+/// Sends a prompt to the Node.js backend and returns the response as-is.
 pub async fn forward_prompt_to_backend(
     prompt: &str,
-    js_backend_url: &str,
-) -> Result<LLMResponse, Box<dyn Error>> {
+    address: &str,
+    nodejs_backend_url: &str,
+) -> Result<NodeJsResponse, Box<dyn Error>> {
     let client = reqwest::Client::new();
-    let request_body = PromptRequest { prompt };
+
+    let request_body = NodeJsRequest { prompt, address };
+
+    println!("🚀 Sending request to Node.js backend:");
+    println!("   URL: {}", nodejs_backend_url);
+    println!("   Prompt: {}", prompt);
+    println!("   Address: {}", address);
 
     let response = client
-        .post(js_backend_url)
+        .post(nodejs_backend_url)
         .json(&request_body)
         .send()
         .await?;
 
+    let status = response.status();
+    println!("📥 Received response with status: {}", status);
+
     if response.status().is_success() {
-        let llm_response: LLMResponse = response.json().await?;
-        Ok(llm_response)
+        let response_text = response.text().await?;
+        println!("📋 Raw response body: {}", response_text);
+
+        let nodejs_response: NodeJsResponse =
+            serde_json::from_str(&response_text).map_err(|e| {
+                format!(
+                    "Failed to parse JSON response: {}. Raw response: {}",
+                    e, response_text
+                )
+            })?;
+
+        println!("✅ Response forwarded successfully");
+        Ok(nodejs_response)
     } else {
-        // Create an error from the non-successful status code
-        let err_msg = format!("Backend request failed with status: {}", response.status());
+        let error_text = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Unknown error".to_string());
+        let err_msg = format!(
+            "Node.js backend request failed with status {}: {}",
+            status, error_text
+        );
+        println!("❌ Error response: {}", err_msg);
         Err(err_msg.into())
     }
 }

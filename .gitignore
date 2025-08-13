@@ -3,7 +3,6 @@ target/
 Cargo.lock
 *.lock
 backend/
-test.html
 
 # Environment variables
 .env
@@ -38,3 +37,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+
+prompt.js

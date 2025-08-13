@@ -11,4 +11,5 @@ export const env = {
   defaultNetwork: process.env.SEI_NETWORK || "sei-testnet",
   llmProvider: process.env.LLM_PROVIDER || "groq",
   backendUrl: process.env.BACKEND_URL || "http://localhost:8080",
+  mcpUrl: process.env.MCP_URL || "../../../../../sei-js/packages/mcp-server/dist/esm/index.js",
 };

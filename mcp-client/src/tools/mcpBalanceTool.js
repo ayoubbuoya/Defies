@@ -9,9 +9,9 @@ import { env } from "../config/env.js";
  * Returns the SEI balance for the given Sei‑EVM address.
  */
 export const mcpBalanceTool = new DynamicStructuredTool({
-  name: "get_balance",
+  name: "get_SEI_balance",
   description:
-    "Return only the SEI balance of a Sei‑EVM address by querying an MCP server.",
+    "Return only the SEI(or WSEI) balance of a Sei‑EVM address.",
   schema: z.object({
     address: z
       .string()

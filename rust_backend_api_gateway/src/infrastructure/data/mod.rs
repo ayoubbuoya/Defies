@@ -1,0 +1,25 @@
+pub mod binance_data_provider;
+pub mod dragonswap_data_provider;
+pub mod sailor_data_provider;
+
+use crate::domain::repositories::{data_provider::DataProvider, dex_provider::DexProvider};
+use binance_data_provider::BinanceDataProvider;
+use dragonswap_data_provider::DragonSwapDataProvider;
+use sailor_data_provider::SailorDataProvider;
+
+pub fn get_data_provider(wallet_type: &str) -> Option<Box<dyn DataProvider>> {
+    match wallet_type {
+        "binance" => Some(Box::new(BinanceDataProvider::new())),
+        "dragonswap" => Some(Box::new(DragonSwapDataProvider::new())),
+        "sailor" => Some(Box::new(SailorDataProvider::new())),
+        _ => None,
+    }
+}
+
+pub fn get_dex_provider(wallet_type: &str) -> Option<Box<dyn DexProvider>> {
+    match wallet_type {
+        "dragonswap" => Some(Box::new(DragonSwapDataProvider::new())),
+        "sailor" => Some(Box::new(SailorDataProvider::new())),
+        _ => None,
+    }
+}

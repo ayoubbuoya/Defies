@@ -8,6 +8,7 @@ use std::env;
 mod api;
 mod config;
 mod domain;
+mod dtos;
 mod infrastructure;
 mod math;
 mod service;
@@ -25,7 +26,8 @@ async fn main() -> std::io::Result<()> {
     
     // --- DATABASE CONNECTION SETUP ---
     // Load environment variables from .env file
-    dotenv().ok();
+    dotenv::dotenv().ok();
+    env_logger::init();
     
     // Get database URL from environment variable
     let database_url = env::var("DATABASE_URL")
@@ -47,20 +49,28 @@ async fn main() -> std::io::Result<()> {
     };
     // --- END DATABASE CONNECTION SETUP ---
 
+
     HttpServer::new(move || {
         let cors = Cors::default()
             .allow_any_origin()
-            .allowed_methods(vec!["GET", "POST", "DELETE"]) // Add "DELETE" method
+
+            .allowed_methods(vec!["GET", "POST", "DELETE"]) 
+
             .allow_any_header()
-            .max_age(3600);
+            .max_age(3600)
+            .supports_credentials();
 
         App::new()
             .app_data(web::Data::new(db_connection.clone())) // Add database connection to app state
             .wrap(cors)
+
+            // This TracingLogger replaces the old Logger::default()
+            // and integrates with the tracing system.
+
             .wrap(TracingLogger::default())
             .configure(init_routes)
     })
-    .bind("127.0.0.1:8081")?
+    .bind("127.0.0.1:8080")?
     .run()
     .await
 }

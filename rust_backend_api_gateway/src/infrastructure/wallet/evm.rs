@@ -2,8 +2,8 @@ use actix_web::HttpResponse;
 use ethers::types::Signature as EvmSignature;
 use ethers::utils::keccak256;
 
-use crate::api::models::AuthRequest;
-use crate::domain::wallet::WalletVerifier;
+use crate::domain::repositories::wallet::WalletVerifier;
+use crate::dtos::auth::AuthRequest;
 
 pub struct EvmVerifier;
 
