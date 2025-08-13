@@ -11,6 +11,7 @@ use crate::service::{
 use actix_web::{HttpResponse, Responder, get, post, web};
 use serde::Deserialize;
 use tracing::{error, info};
+use crate::service::position_service;
 
 // --- Authentication Handler ---
 #[post("/verify")]
@@ -155,5 +156,62 @@ pub async fn get_price_history_tool(query: web::Query<PriceHistoryRequest>) -> i
                 "details": e.to_string()
             }))
         }
+    }
+}
+
+
+
+
+
+
+// GET /positions/{pb_key}
+pub async fn get_positions_for_wallet(
+    db: web::Data<sea_orm::DatabaseConnection>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    let pb_key = path.into_inner();
+    match position_service::get_all_positions_for_wallet(&db, pb_key).await {
+        Ok(positions) => HttpResponse::Ok().json(positions),
+        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
+    }
+}
+
+// POST /positions
+#[derive(serde::Deserialize)]
+pub struct AddPositionRequest {
+    pub pb_key: String,
+    pub trans_id: i32,
+    pub left: f32,
+    pub right: f32,
+    pub value_locker: f32,
+}
+
+pub async fn add_position_handler(
+    db: web::Data<sea_orm::DatabaseConnection>,
+    req: web::Json<AddPositionRequest>,
+) -> HttpResponse {
+    let r = req.into_inner();
+    match position_service::add_position(
+        &db,
+        r.pb_key,
+        r.trans_id,
+        r.left,
+        r.right,
+        r.value_locker,
+    ).await {
+        Ok(pos) => HttpResponse::Ok().json(pos),
+        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
+    }
+}
+
+// DELETE /positions/{pb_key}/{trans_id}
+pub async fn delete_position_handler(
+    db: web::Data<sea_orm::DatabaseConnection>,
+    path: web::Path<(String, i32)>,
+) -> HttpResponse {
+    let (pb_key, trans_id) = path.into_inner();
+    match position_service::delete_position(&db, pb_key, trans_id).await {
+        Ok(_) => HttpResponse::Ok().body("Position deleted"),
+        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
 }
