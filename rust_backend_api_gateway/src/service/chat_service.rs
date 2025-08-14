@@ -1,4 +1,9 @@
-use mongodb::{bson::{doc, Document}, Client, Collection};
+use mongodb::{
+    bson::doc,
+    options::UpdateOptions, // Added for the upsert operation
+    Client,
+    Collection,
+};
 use serde::{Deserialize, Serialize};
 use futures::stream::TryStreamExt;
 
@@ -21,12 +26,25 @@ impl ChatService {
         Ok(Self { collection })
     }
 
+    // ## MODIFIED FUNCTION ##
     pub async fn add_content(&self, public_key: String, conversation: String) -> mongodb::error::Result<()> {
-        let doc = ChatDocument { public_key, conversation };
-        self.collection.insert_one(doc, None).await?;
+        // Find a document with the matching public key
+        let filter = doc! { "public_key": &public_key };
+
+        // Define the update operation to set the conversation field
+        let update = doc! { "$set": { "conversation": &conversation } };
+
+        // Configure options to perform an "upsert"
+        // This will create the document if it doesn't exist
+        let options = UpdateOptions::builder().upsert(true).build();
+
+        // Execute the database command
+        self.collection.update_one(filter, update, options).await?;
+
         Ok(())
     }
 
+    // This function remains the same
     pub async fn read_content(&self, public_key: String) -> mongodb::error::Result<Vec<ChatDocument>> {
         let filter = doc! { "public_key": &public_key };
         let mut cursor = self.collection.find(filter, None).await?;
