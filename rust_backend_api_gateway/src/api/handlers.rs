@@ -12,6 +12,7 @@ use actix_web::{HttpResponse, Responder, get, post, web};
 use serde::Deserialize;
 use tracing::{error, info};
 use crate::service::position_service;
+use crate::AppState;
 
 // --- Authentication Handler ---
 #[post("/verify")]
@@ -214,6 +215,35 @@ pub async fn delete_position_handler(
     let (pb_key, trans_id) = path.into_inner();
     match position_service::delete_position(&db, pb_key, trans_id).await {
         Ok(_) => HttpResponse::Ok().body("Position deleted"),
+        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
+    }
+}
+#[derive(Deserialize)]
+pub struct AddChatRequest {
+    pub public_key: String,
+    pub conversation: String,
+}
+
+pub async fn add_chat(
+    data: web::Data<AppState>,
+    req: web::Json<AddChatRequest>,
+) -> HttpResponse {
+    let result = data.chat_service
+        .add_content(req.public_key.clone(), req.conversation.clone())
+        .await;
+    match result {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
+    }
+}
+
+pub async fn get_chat(
+    data: web::Data<AppState>,
+    public_key: web::Path<String>,
+) -> HttpResponse {
+    let result = data.chat_service.read_content(public_key.into_inner()).await;
+    match result {
+        Ok(chats) => HttpResponse::Ok().json(chats),
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
 }

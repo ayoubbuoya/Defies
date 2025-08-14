@@ -4,6 +4,8 @@ use tracing_actix_web::TracingLogger;
 use sea_orm::{Database, DatabaseConnection};
 use dotenvy::dotenv;
 use std::env;
+use api::routes::init_routes;
+use service::chat_service::ChatService;
 
 mod api;
 mod config;
@@ -12,26 +14,24 @@ mod infrastructure;
 mod math;
 mod service;
 
-use api::routes::init_routes;
+
+struct AppState {
+    db_connection: DatabaseConnection,
+    chat_service: ChatService,
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // This sets up a logger that will print all trace, debug, info, etc.
-    // messages to your console.
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .with_test_writer()
         .init();
-    
-    // --- DATABASE CONNECTION SETUP ---
-    // Load environment variables from .env file
+
     dotenv().ok();
-    
-    // Get database URL from environment variable
+
+    // SQL Database connection
     let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set in .env file");
-    
-    // Establish database connection
     let db_connection: DatabaseConnection = match Database::connect(&database_url).await {
         Ok(db) => {
             println!("Successfully connected to database!");
@@ -45,17 +45,25 @@ async fn main() -> std::io::Result<()> {
             ));
         }
     };
-    // --- END DATABASE CONNECTION SETUP ---
+
+    // MongoDB Chat Service connection
+    let mongo_uri = env::var("MONGODB_URI").unwrap_or_else(|_| "mongodb://localhost:27017".to_string());
+    let chat_service = ChatService::new(&mongo_uri)
+        .await
+        .expect("Failed to connect to MongoDB");
 
     HttpServer::new(move || {
         let cors = Cors::default()
             .allow_any_origin()
-            .allowed_methods(vec!["GET", "POST", "DELETE"]) // Add "DELETE" method
+            .allowed_methods(vec!["GET", "POST", "DELETE"])
             .allow_any_header()
             .max_age(3600);
 
         App::new()
-            .app_data(web::Data::new(db_connection.clone())) // Add database connection to app state
+            .app_data(web::Data::new(AppState {
+                db_connection: db_connection.clone(),
+                chat_service: chat_service.clone(),
+            }))
             .wrap(cors)
             .wrap(TracingLogger::default())
             .configure(init_routes)

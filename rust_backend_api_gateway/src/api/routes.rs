@@ -6,9 +6,11 @@ use crate::api::handlers::{
     verify_signature, get_graph_data_handler, prompt_handler, get_pools_handler,
     get_token_pair_price_history,
     get_price_history, 
-        get_positions_for_wallet,
+    get_positions_for_wallet,
     add_position_handler,
     delete_position_handler,
+    add_chat,
+    get_chat
 };
 
 
@@ -40,4 +42,12 @@ cfg.service(
     web::resource("/positions/{pb_key}/{trans_id}")
         .route(web::delete().to(delete_position_handler))
 );
+    cfg.service(
+        web::resource("/chat")
+            .route(web::put().to(add_chat))
+    );
+    cfg.service(
+        web::resource("/chat/{public_key}")
+            .route(web::get().to(get_chat))
+    );
 }
