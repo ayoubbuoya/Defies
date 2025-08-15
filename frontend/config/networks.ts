@@ -1,4 +1,4 @@
-import { NetworkConfig } from "./types"
+import { NetworkConfig } from "../types/wallet"
 
 export const NETWORKS: NetworkConfig[] = [
     {

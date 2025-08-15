@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { TopNavigation } from "@/components/top-navigation"
 import { HomePage } from "@/components/home-page"
 import { ChatInterface } from "@/components/chat-interface"
-import { EnhancedLiquidityProvider } from "@/components/enhanced-liquidity-provider"
 import { Footer } from "@/components/footer"
 import { PoolsPage } from "@/components/pools-page"
 
