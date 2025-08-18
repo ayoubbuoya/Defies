@@ -13,7 +13,7 @@ import "forge-std/console.sol";
  * @dev A contract that manages liquidity across multiple pools
  * @notice This contract allows users to mint and burn liquidity positions across different pools
  */
-contract LiquidityManager is IUniswapV3MintCallback {
+contract LiquidityManager {
     // Events
     event LiquidityMinted(
         address indexed pool,

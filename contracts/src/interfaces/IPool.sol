@@ -57,7 +57,7 @@ interface IPool {
             uint16 observationIndex,
             uint16 observationCardinality,
             uint16 observationCardinalityNext,
-            uint8 feeProtocol,
+            uint32 feeProtocol,
             bool unlocked
         );
 
