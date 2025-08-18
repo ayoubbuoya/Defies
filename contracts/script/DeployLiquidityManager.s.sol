@@ -38,7 +38,7 @@ contract DeployLiquidityManager is Script {
         console.log("\n=== Testing Basic Functionality ===");
         
         // Real SEI mainnet pool addresses
-        address USDC_WSEI_POOL = 0x882f62fe8E9594470D1da0f70Bc85096F6c60423;
+        address USDC_WSEI_POOL = 0xcca2352200a63eb0Aaba2D40BA69b1d32174F285;
         
         try liquidityManager.getPoolInfo(USDC_WSEI_POOL) returns (
             address token0,
