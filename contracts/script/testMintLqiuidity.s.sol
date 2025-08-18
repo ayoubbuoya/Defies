@@ -11,12 +11,19 @@ contract MintLiquidityScript is Script {
     address constant WSEI = 0xE30feDd158A2e3b13e9badaeABaFc5516e95e8C7;
 
     // Real pool addresses from DragonSwap API response
-    address constant USDC_WSEI_POOL =
+    address constant USDC_WSEI_DRAGON_POOL =
         0xcca2352200a63eb0Aaba2D40BA69b1d32174F285; // V3 pool with high volume
+    address constant USDC_WSEI_SAILOR_POOL =
+        0x80fE558C54f1F43263E08F0E1Fa3E02D8B897F93; // V3 pool with high volume
+
+    // Use the DragonSwap pool for testing
+    // address constant USDC_WSEI_POOL = USDC_WSEI_DRAGON_POOL;
+    address constant USDC_WSEI_POOL = USDC_WSEI_SAILOR_POOL;
+
     address constant TEST_USER = 0x79dAa774769334aF120f6CAA57E828FBBF56b39a;
 
     LiquidityManager liquidityManager =
-        LiquidityManager(0x182C9728dca9f21Bb7BB95F8B5018827ADF313f0);
+        LiquidityManager(0x29491F712637415f4E27B7471F4DD8147094C555);
 
     function run() external {
         uint256 usdcAmount = 0.1 * 1e6;
@@ -35,6 +42,8 @@ contract MintLiquidityScript is Script {
             USDC_WSEI_POOL
         ).slot0();
 
+        console.log("Current Tick:", currentTick);
+
         int24 tickSpacing = 60;
         int24 tickRange = 200;
         int24 tickLower = ((currentTick - tickRange) / tickSpacing) *
@@ -42,7 +51,6 @@ contract MintLiquidityScript is Script {
         int24 tickUpper = ((currentTick + tickRange) / tickSpacing) *
             tickSpacing;
 
-        console.log("Current Tick:", currentTick);
         console.log("Tick Lower:", tickLower);
         console.log("Tick Upper:", tickUpper);
 
@@ -59,6 +67,32 @@ contract MintLiquidityScript is Script {
 
         console.log("Amount0 used:", amount0Used);
         console.log("Amount1 used:", amount1Used);
+
+        // Get the position info
+        (
+            uint256 liquidity,
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint128 tokensOwed0,
+            uint128 tokensOwed1
+        ) = liquidityManager.getPosition(
+                USDC_WSEI_POOL,
+                TEST_USER,
+                tickLower,
+                tickUpper
+            );
+
+        console.log("Position liquidity:", liquidity);
+        console.log(
+            "Position feeGrowthInside0LastX128:",
+            feeGrowthInside0LastX128
+        );
+        console.log(
+            "Position feeGrowthInside1LastX128:",
+            feeGrowthInside1LastX128
+        );
+        console.log("Position tokensOwed0:", tokensOwed0);
+        console.log("Position tokensOwed1:", tokensOwed1);
 
         vm.stopBroadcast();
     }

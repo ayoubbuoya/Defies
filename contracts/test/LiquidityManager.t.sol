@@ -16,9 +16,15 @@ contract LiquidityManagerTest is Test {
     address constant USDC = 0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392;
     address constant WSEI = 0xE30feDd158A2e3b13e9badaeABaFc5516e95e8C7;
     // Real pool addresses from DragonSwap API response
-    address constant USDC_WSEI_POOL =
+    address constant USDC_WSEI_DRAGON_POOL =
         0xcca2352200a63eb0Aaba2D40BA69b1d32174F285; // V3 pool with high volume
-        
+    address constant USDC_WSEI_SAILOR_POOL =
+        0x80fE558C54f1F43263E08F0E1Fa3E02D8B897F93; // V3 pool with high volume
+
+    // Use the DragonSwap pool for testing
+    // address constant USDC_WSEI_POOL = USDC_WSEI_DRAGON_POOL;
+    address constant USDC_WSEI_POOL = USDC_WSEI_SAILOR_POOL;
+
     // Test user addresses
     address constant TEST_USER = 0x79dAa774769334aF120f6CAA57E828FBBF56b39a;
 
@@ -94,6 +100,10 @@ contract LiquidityManagerTest is Test {
      */
     function testMintConcentratedLiquidity() public {
         console.log("\n=== Testing Concentrated Liquidity Minting ===");
+
+        address token0 = IPool(USDC_WSEI_POOL).token0();
+
+        console.log("Token0 : ", token0);
 
         // Get current pool state
         (uint160 sqrtPriceX96, int24 currentTick, , , , , ) = IPool(
