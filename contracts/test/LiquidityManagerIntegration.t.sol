@@ -4,7 +4,9 @@ pragma solidity ^0.8.13;
 import {Test} from "forge-std/Test.sol";
 import {LiquidityManager} from "src/LiquidityManager.sol";
 import {IPool} from "src/interfaces/IPool.sol";
-import {IERC20} from "src/interfaces/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {console} from "forge-std/console.sol";
 
 /**
@@ -92,15 +94,18 @@ contract LiquidityManagerIntegration is Test {
                 console.log("Token1:", token1);
                 console.log("Fee:", fee);
                 console.log("Tick Spacing:", uint256(int256(tickSpacing)));
-
                 // Get token symbols if possible
-                try IERC20(token0).symbol() returns (string memory symbol0) {
+                try IERC20Metadata(token0).symbol() returns (
+                    string memory symbol0
+                ) {
                     console.log("Token0 Symbol:", symbol0);
                 } catch {
                     console.log("Token0 Symbol: Unable to fetch");
                 }
 
-                try IERC20(token1).symbol() returns (string memory symbol1) {
+                try IERC20Metadata(token1).symbol() returns (
+                    string memory symbol1
+                ) {
                     console.log("Token1 Symbol:", symbol1);
                 } catch {
                     console.log("Token1 Symbol: Unable to fetch");
@@ -167,8 +172,9 @@ contract LiquidityManagerIntegration is Test {
                 uint256 balance
             ) {
                 console.log(symbols[i], "balance of whale:", balance);
-
-                try IERC20(tokens[i]).decimals() returns (uint8 decimals) {
+                try IERC20Metadata(tokens[i]).decimals() returns (
+                    uint8 decimals
+                ) {
                     console.log(symbols[i], "decimals:", decimals);
                 } catch {
                     console.log(symbols[i], "decimals: Unable to fetch");
@@ -199,10 +205,7 @@ contract LiquidityManagerIntegration is Test {
         console.log("Amount1 Max:", amount1Max);
 
         // Verify parameters
-        assertTrue(
-            pool != address(0),
-            "Pool address should not be zero"
-        );
+        assertTrue(pool != address(0), "Pool address should not be zero");
         assertTrue(
             tickLower < tickUpper,
             "Tick lower should be less than tick upper"

@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Test} from "forge-std/Test.sol";
 import {LiquidityManager} from "../src/LiquidityManager.sol";
 import {IPool} from "../src/interfaces/IPool.sol";
-import {IERC20} from "../src/interfaces/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract LiquidityManagerTest is Test {
     LiquidityManager public liquidityManager;
