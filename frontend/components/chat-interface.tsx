@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useWallet } from "@/contexts/wallet/wallet-context"
+import { useWallet } from "@/contexts/wallet/WalletProvider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {

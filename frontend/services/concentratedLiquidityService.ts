@@ -1,5 +1,5 @@
 import { LiquidityResponse, BackendLiquidityResponse } from '../types/liquidity'
-import { LiquidityDataAdapter } from '../adapters/liquidityAdapter'
+import { LiquidityDataAdapter } from '../adapters/liquidity/liquidityAdapter'
 import { Pool } from '@/types/pool'
 
 export interface LiquidityServiceOptions {

@@ -3,7 +3,7 @@
 import { Suspense } from "react"
 import { TopNavigation } from "@/components/top-navigation"
 import { EnhancedLiquidityProvider } from "@/components/enhanced-liquidity-provider"
-import { useWallet } from "@/contexts/wallet/wallet-context"
+import { useWallet } from "@/contexts/wallet/WalletProvider"
 import { Simple404 } from "@/components/not-connected-404"
 
 function LiquidityPageContent() {

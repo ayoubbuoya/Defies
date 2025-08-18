@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
-import type { TxParams, WalletStrategy } from "./types";
-import type { NetworkConfig } from "./types";
+import type { TxParams, WalletStrategy } from "../../types/wallet";
+import type { NetworkConfig } from "../../types/wallet";
 
 export class MetaMaskWallet implements WalletStrategy {
     private provider: ethers.BrowserProvider | null = null;

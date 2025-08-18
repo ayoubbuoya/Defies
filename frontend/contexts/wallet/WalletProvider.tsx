@@ -1,12 +1,14 @@
 
 "use client"
-import { WalletStrategy, TxParams } from "./types"
+import { WalletStrategy, TxParams } from "../../types/wallet"
 import React, { useEffect, useState } from "react"
-import { WalletContext } from "./wallet-context"
-import { NETWORKS } from "./networks"
-import type { NetworkConfig, WalletContextType, WalletInfo } from "./types"
-import { getWalletStrategy } from "./Factory";
+import { NETWORKS } from "../../config/networks"
+import type { NetworkConfig, WalletContextType, WalletInfo } from "../../types/wallet"
+import { getWalletStrategy } from "../../adapters/wallet/Factory";
 import GlobalLoader from "@/components/GlobalLoader"
+import { createContext, useContext } from "react"
+
+export const WalletContext = createContext<WalletContextType | undefined>(undefined)
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
     const [isRestoring, setIsRestoring] = useState(true);
@@ -187,4 +189,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         </WalletContext.Provider>
     )
 
+}
+
+
+export function useWallet() {
+    const context = useContext(WalletContext)
+    if (!context) throw new Error("useWallet must be used within a WalletProvider")
+    return context
 }

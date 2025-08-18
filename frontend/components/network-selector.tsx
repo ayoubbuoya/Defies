@@ -1,6 +1,6 @@
 "use client"
 
-import { useWallet } from "@/contexts/wallet/wallet-context"
+import { useWallet } from "@/contexts/wallet/WalletProvider"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ChevronDown, Globe, Wifi, WifiOff } from "lucide-react"
