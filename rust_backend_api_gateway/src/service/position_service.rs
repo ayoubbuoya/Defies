@@ -1,4 +1,3 @@
-//! src/service/position_service.rs
 
 use sea_orm::{
     ConnectionTrait, DatabaseConnection, DbErr, FromQueryResult, Statement, TransactionTrait,
@@ -16,11 +15,7 @@ pub struct Position {
     pub value_locker: f32,
 }
 
-/// Adds a new position. If the wallet address doesn't exist, it creates it first.
-///
-/// # Errors
-///
-/// Will return `Err` if there is a database error during the transaction.
+
 pub async fn add_position(
     db: &DatabaseConnection,
     pb_key: String,
@@ -39,7 +34,7 @@ pub async fn add_position(
             [pb_key.clone().into()],
         ))
         .await?
-        .map(|res| res.try_get("", "0"))
+        .map(|res| res.try_get_by_index(0))
         .transpose()?;
 
     // If wallet does not exist, insert it
@@ -78,11 +73,6 @@ pub async fn add_position(
     })
 }
 
-/// Deletes a specific position for a given wallet.
-///
-/// # Errors
-///
-/// Will return `Err` if the position does not exist or if there is a database error.
 pub async fn delete_position(
     db: &DatabaseConnection,
     pb_key: String,
@@ -103,11 +93,6 @@ pub async fn delete_position(
     Ok(())
 }
 
-/// Retrieves all positions associated with a specific wallet.
-///
-/// # Errors
-///
-/// Will return `Err` if there is a database error.
 pub async fn get_all_positions_for_wallet(
     db: &DatabaseConnection,
     pb_key: String,
