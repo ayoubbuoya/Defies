@@ -1,6 +1,6 @@
 "use client"
 
-import { useWallet } from "@/contexts/wallet/wallet-context"
+import { useWallet } from "@/contexts/wallet/WalletProvider"
 import { NetworkSelector } from "@/components/network-selector"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"

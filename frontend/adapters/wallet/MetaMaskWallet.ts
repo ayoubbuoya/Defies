@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
-import type { TxParams, WalletStrategy } from "./types";
-import type { NetworkConfig } from "./types";
+import type { TxParams, WalletStrategy } from "../../types/wallet";
+import type { NetworkConfig } from "../../types/wallet";
 
 export class MetaMaskWallet implements WalletStrategy {
     private provider: ethers.BrowserProvider | null = null;
@@ -37,10 +37,13 @@ export class MetaMaskWallet implements WalletStrategy {
 
     async restoreConnection(): Promise<boolean> {
         if (!this.isInstalled()) return false;
-
-        this.provider = new ethers.BrowserProvider((window as any).ethereum);
-        this.signer = await this.provider.getSigner();
-        return !!(this.provider && this.signer);
+        try {
+            this.provider = new ethers.BrowserProvider((window as any).ethereum);
+            this.signer = await this.provider.getSigner();
+            return !!(this.provider && this.signer);
+        } catch (error) {
+            return false;
+        }
     }
 
     async getAddress(): Promise<string> {

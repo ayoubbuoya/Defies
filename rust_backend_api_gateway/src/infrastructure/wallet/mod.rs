@@ -1,6 +1,6 @@
 mod evm;
 
-use crate::domain::wallet::WalletVerifier;
+use crate::domain::repositories::wallet::WalletVerifier;
 use evm::EvmVerifier;
 
 pub fn get_verifier(wallet_type: &str) -> Option<Box<dyn WalletVerifier>> {

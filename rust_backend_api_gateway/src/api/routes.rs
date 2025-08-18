@@ -1,21 +1,17 @@
-// src/api/routes.rs
-
-// Add get_pools_handler to your use statement
-use actix_web::web;
-use crate::api::handlers::{
-    verify_signature, get_graph_data_handler, prompt_handler, get_pools_handler,
-    get_token_pair_price_history,
-    get_price_history, 
-    get_positions_for_wallet,
-    add_position_handler,
-    delete_position_handler,
+use crate::{
+    api::handlers::{
+        add_position_handler, delete_position_handler, get_graph_data_handler, get_pools_handler,
+        get_positions_for_wallet, get_price_history_tool, get_token_pair_price_history,
     add_chat,
-    get_chat
+        get_token_symbol_handler, prompt_handler, verify_signature, get_price_history, 
+    },
+    service,
 };
-
-
+use actix_web::web;
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
+    cfg.service(web::scope("/tools").service(get_price_history_tool));
+
     // Authentication routes
     cfg.service(web::scope("/auth").service(verify_signature));
 
@@ -24,13 +20,15 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
         web::scope("/data")
             .service(get_graph_data_handler)
             .service(get_pools_handler)
-            .service(get_token_pair_price_history),
+            .service(get_token_pair_price_history)
+            .service(get_token_symbol_handler),
     );
-    
+
     // Agent/LLM routes
     cfg.service(web::scope("/agent").service(prompt_handler));
-    cfg.service(web::scope("/tools").service(get_price_history));
+
     cfg.service(
+
     web::resource("/positions/{pb_key}")
         .route(web::get().to(get_positions_for_wallet))
 );
@@ -51,3 +49,4 @@ cfg.service(
             .route(web::get().to(get_chat))
     );
 }
+

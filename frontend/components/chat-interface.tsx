@@ -3,11 +3,9 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useWallet } from "@/contexts/wallet/wallet-context"
+import { useWallet } from "@/contexts/wallet/WalletProvider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import {
   Wallet,
   Send,
@@ -16,37 +14,44 @@ import {
   MicOff,
   Stars,
   ExternalLink,
-  ChevronRight,
-  Clock,
-  DollarSign,
-  TrendingUp,
-  Shield,
 } from "lucide-react"
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition"
-
-interface LiquidityFormData {
-  pair?: string
-  riskProfile?: string
-  amount?: string
-  returnPreference?: string
-  investmentDuration?: string
-}
 
 interface Message {
   id: string
   type: "user" | "ai"
   content: string
   timestamp: Date
-  responseType?: "normal" | "show_form" | "show_position"
-  liquidityAction?: {
-    pool: string
-    minPrice: number
-    maxPrice: number
+  responseType?: "STANDARD" | "POOL_RECOMMENDATION"
+  poolRecommendation?: {
+    pool_id: string
+    min_price: number
+    max_price: number
   }
 }
 
+// API Response Types
+interface StandardResponse {
+
+  type: "STANDARD"
+  message: string
+
+}
+
+interface PoolRecommendationResponse {
+
+  type: "POOL_RECOMMENDATION"
+  message: string
+  pool_id: string
+  min_price: number
+  max_price: number
+
+}
+
+type AIResponse = StandardResponse | PoolRecommendationResponse
+
 export function ChatInterface() {
-  const { isConnected, setShowConnectionModal } = useWallet()
+  const { isConnected, setShowConnectionModal, address } = useWallet()
   const router = useRouter()
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
@@ -85,147 +90,55 @@ export function ChatInterface() {
         id: "welcome",
         type: "ai",
         content:
-          "Welcome to SeiMind! I'm your AI-powered Web3 intelligence assistant. I can help you navigate the blockchain world, answer questions about cryptocurrencies, DeFi, and provide insights into the Sei ecosystem. I can also help you set up liquidity positions with optimal parameters. How can I assist you today?",
+          "Welcome to SeiMind! I'm your AI-powered Web3 intelligence assistant. I can help you navigate the blockchain world, answer questions about cryptocurrencies, DeFi, and provide insights into the Sei ecosystem. I can also recommend optimal liquidity pools based on current market conditions. How can I assist you today?",
         timestamp: new Date(),
-        responseType: "normal",
+        responseType: "STANDARD",
       }
       setMessages([welcomeMessage])
     }
   }, [isConnected, messages.length])
 
-  const handleLiquidityAction = (liquidityAction: Message["liquidityAction"]) => {
-    if (!liquidityAction) return
+  // API call to your backend
+  const callAIAgent = async (prompt: string): Promise<AIResponse> => {
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/agent/ask`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          address: address
+        })
+      })
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data: AIResponse = await response.json()
+      return data
+    } catch (error) {
+      console.error('Error calling AI agent:', error)
+      // Return fallback response
+      return {
+
+        type: "STANDARD",
+        message: "I'm sorry, I'm having trouble connecting to my AI services right now. Please try again in a moment."
+      }
+    }
+  }
+
+  const handlePoolRecommendation = (poolData: { pool_id: string, min_price: number, max_price: number }) => {
     const params = new URLSearchParams({
-      pool: liquidityAction.pool,
-      minPrice: liquidityAction.minPrice.toString(),
-      maxPrice: liquidityAction.maxPrice.toString(),
+      pool: poolData.pool_id,
+      minPrice: poolData.min_price.toString(),
+      maxPrice: poolData.max_price.toString(),
       from: "chat",
     })
 
     router.push(`/liquidity?${params.toString()}`)
-  }
-
-  const handleFormSubmit = async (formData: LiquidityFormData, messageId: string) => {
-    // Add user message showing form submission
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: "user",
-      content: `Form submitted with preferences: ${Object.entries(formData)
-        .filter(([_, value]) => value)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join(", ")}`,
-      timestamp: new Date(),
-      responseType: "normal",
-    }
-
-    setMessages((prev) => [...prev, userMessage])
-    setInputValue("")
-    setIsTyping(true)
-
-    // Simulate API call to AI agent with form data
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    // Simulate AI response with position recommendation
-    const aiResponse: Message = {
-      id: Date.now().toString(),
-      type: "ai",
-      content: `🎯 **Perfect Match Found!**
-
-Based on your preferences, I've created a personalized liquidity strategy:
-
-• **Pair**: ${formData.pair || "SEI-USDC"}
-• **Risk Level**: ${formData.riskProfile || "Medium"} risk
-• **Investment**: $${formData.amount || "1,000"}
-• **Strategy**: ${formData.returnPreference || "Stable"} returns
-• **Duration**: ${formData.investmentDuration || "3-6 months"}
-
-**Recommended Position:**
-• **DEX**: Sailor V2 (best liquidity)
-• **Fee Tier**: 0.3% (optimal for your risk profile)
-• **Price Range**: $0.008 - $0.015
-• **Expected APR**: 12.5%
-• **Estimated Monthly Earnings**: $10.42
-
-This strategy is optimized for your preferences and current market conditions.`,
-      timestamp: new Date(),
-      responseType: "show_position",
-      liquidityAction: {
-        pool: (formData.pair || "SEI-USDC").replace("/", "-"),
-        minPrice: 0.008,
-        maxPrice: 0.015,
-      },
-    }
-
-    setMessages((prev) => [...prev, aiResponse])
-    setIsTyping(false)
-  }
-
-  const generateAIResponse = (userInput: string): Message => {
-    const input = userInput.toLowerCase()
-
-    if (input.includes("hello") || input.includes("hi")) {
-      return {
-        id: Date.now().toString(),
-        type: "ai",
-        content: "Hello! I'm SeiMind, your AI companion for Web3 intelligence. What would you like to explore today?",
-        timestamp: new Date(),
-        responseType: "normal",
-      }
-    }
-
-    if (input.includes("liquidity") || input.includes("provide liquidity") || input.includes("lp")) {
-      return {
-        id: Date.now().toString(),
-        type: "ai",
-        content:
-          "🌊 I can help you set up the perfect liquidity position! Let me gather some information about your preferences to create a personalized recommendation that matches your investment goals and risk tolerance.",
-        timestamp: new Date(),
-        responseType: "show_form",
-      }
-    }
-
-    if (input.includes("sei") && input.includes("usdc")) {
-      return {
-        id: Date.now().toString(),
-        type: "ai",
-        content:
-          "📊 SEI/USDC is one of the most liquid pairs on Sei Network! Here's what I recommend:\n\n• **Current Price**: $0.0105\n• **24h Volume**: $3.8M\n• **Best DEX**: Sailor V2 (lowest slippage)\n• **Optimal Fee Tier**: 0.3%\n• **Suggested Range**: $0.009 - $0.013\n\nThis range captures 80% of recent price action. Ready to provide liquidity?",
-        timestamp: new Date(),
-        responseType: "show_position",
-        liquidityAction: {
-          pool: "SEI-USDC",
-          minPrice: 0.009,
-          maxPrice: 0.013,
-        },
-      }
-    }
-
-    if (input.includes("defi") || input.includes("yield") || input.includes("farming")) {
-      return {
-        id: Date.now().toString(),
-        type: "ai",
-        content:
-          "🌾 Great DeFi opportunities on Sei right now:\n\n• **Liquidity Providing**: 8-15% APR\n• **SEI Staking**: 8.5% APR (Low risk)\n• **Lending**: 6.8% APR\n\nFor liquidity providing, I recommend starting with SEI/USDC - it's stable and profitable. Want me to set up an optimal position?",
-        timestamp: new Date(),
-        responseType: "show_position",
-        liquidityAction: {
-          pool: "SEI-USDC",
-          minPrice: 0.008,
-          maxPrice: 0.015,
-        },
-      }
-    }
-
-    // Default response
-    return {
-      id: Date.now().toString(),
-      type: "ai",
-      content:
-        "🤔 I understand you're asking about Web3 and DeFi. I can help you with:\n\n• 📊 Market analysis and insights\n• 🌊 Liquidity provision strategies\n• 🔄 Token swaps and trading\n• 🌾 DeFi opportunities and staking\n• 📈 Portfolio optimization\n\nCould you be more specific about what you'd like to know or do?",
-      timestamp: new Date(),
-      responseType: "normal",
-    }
   }
 
   const handleSend = async () => {
@@ -236,17 +149,56 @@ This strategy is optimized for your preferences and current market conditions.`,
       type: "user",
       content: inputValue.trim(),
       timestamp: new Date(),
-      responseType: "normal",
+      responseType: "STANDARD",
     }
 
     setMessages((prev) => [...prev, userMessage])
+    const currentPrompt = inputValue.trim()
     setInputValue("")
     setIsTyping(true)
 
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      // Call your AI agent
+      const aiResponse = await callAIAgent(currentPrompt)
 
-    const aiResponse = generateAIResponse(userMessage.content)
-    setMessages((prev) => [...prev, aiResponse])
+      let aiMessage: Message
+
+      if (aiResponse.type === "POOL_RECOMMENDATION") {
+        aiMessage = {
+          id: Date.now().toString(),
+          type: "ai",
+          content: aiResponse.message,
+          timestamp: new Date(),
+          responseType: "POOL_RECOMMENDATION",
+          poolRecommendation: {
+            pool_id: aiResponse.pool_id,
+            min_price: aiResponse.min_price,
+            max_price: aiResponse.max_price
+          }
+        }
+      } else {
+        aiMessage = {
+          id: Date.now().toString(),
+          type: "ai",
+          content: aiResponse.message,
+          timestamp: new Date(),
+          responseType: "STANDARD",
+        }
+      }
+
+      setMessages((prev) => [...prev, aiMessage])
+    } catch (error) {
+      // Handle error case
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        type: "ai",
+        content: "I apologize, but I'm experiencing technical difficulties right now. Please try your question again.",
+        timestamp: new Date(),
+        responseType: "STANDARD",
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    }
+
     setIsTyping(false)
   }
 
@@ -257,46 +209,24 @@ This strategy is optimized for your preferences and current market conditions.`,
     }
   }
 
-  const renderLiquidityForm = (messageId: string) => {
-    return (
-      <Card className="mt-4 bg-slate-800/50 border-slate-700/50">
-        <CardContent className="p-6 space-y-6">
-          <div className="text-center space-y-2">
-            <h3 className="text-lg font-bold text-white">Liquidity Preference Form</h3>
-            <p className="text-sm text-gray-400">
-              Help us create the perfect position for you. All questions are optional.
-            </p>
-          </div>
-          <LiquidityPreferenceForm
-            onSubmit={(formData) => handleFormSubmit(formData, messageId)}
-            onSkip={() => {
-              // Handle skip - could send a message or just continue with defaults
-              const skipMessage: Message = {
-                id: Date.now().toString(),
-                type: "user",
-                content: "I'll skip the form and go with default recommendations.",
-                timestamp: new Date(),
-                responseType: "normal",
-              }
-              setMessages((prev) => [...prev, skipMessage])
-            }}
-          />
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const renderPositionAction = (message: Message) => {
-    if (!message.liquidityAction) return null
+  const renderPoolRecommendation = (message: Message) => {
+    if (!message.poolRecommendation) return null
 
     return (
       <div className="mt-4 pt-4 border-t border-gray-600/30">
+        <div className="bg-slate-800/30 rounded-lg p-4 mb-3">
+          <h4 className="text-sm font-semibold text-cyan-400 mb-2">Pool Details:</h4>
+          <div className="text-sm text-gray-300 space-y-1">
+            <div>Pool ID: <span className="font-mono text-xs">{message.poolRecommendation.pool_id}</span></div>
+            <div>Price Range: {message.poolRecommendation.min_price} - {message.poolRecommendation.max_price}</div>
+          </div>
+        </div>
         <Button
-          onClick={() => handleLiquidityAction(message.liquidityAction)}
+          onClick={() => handlePoolRecommendation(message.poolRecommendation!)}
           className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white text-sm px-4 py-2 rounded-lg shadow-lg hover:scale-105 transition-all duration-300"
         >
           <ExternalLink className="w-4 h-4 mr-2" />
-          Set Up Liquidity Position
+          Open Liquidity Pool
         </Button>
       </div>
     )
@@ -369,8 +299,8 @@ This strategy is optimized for your preferences and current market conditions.`,
                 >
                   <div
                     className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${message.type === "user"
-                        ? "bg-gradient-to-r from-purple-500 to-pink-500 shadow-purple-500/25"
-                        : "bg-gradient-to-r from-cyan-500 to-blue-500 shadow-cyan-500/25"
+                      ? "bg-gradient-to-r from-purple-500 to-pink-500 shadow-purple-500/25"
+                      : "bg-gradient-to-r from-cyan-500 to-blue-500 shadow-cyan-500/25"
                       }`}
                   >
                     {message.type === "user" ? (
@@ -383,17 +313,14 @@ This strategy is optimized for your preferences and current market conditions.`,
                   </div>
                   <div
                     className={`rounded-3xl p-6 backdrop-blur-sm border shadow-xl ${message.type === "user"
-                        ? "bg-gradient-to-r from-purple-600/90 to-pink-600/90 text-white border-purple-500/30 shadow-purple-500/20"
-                        : "bg-gray-800/90 text-gray-100 border-gray-700/50 shadow-gray-900/50"
+                      ? "bg-gradient-to-r from-purple-600/90 to-pink-600/90 text-white border-purple-500/30 shadow-purple-500/20"
+                      : "bg-gray-800/90 text-gray-100 border-gray-700/50 shadow-gray-900/50"
                       }`}
                   >
                     <p className="whitespace-pre-line leading-relaxed text-base">{message.content}</p>
 
-                    {/* Render Form if responseType is "show_form" */}
-                    {message.responseType === "show_form" && renderLiquidityForm(message.id)}
-
-                    {/* Render Position Action if responseType is "show_position" */}
-                    {message.responseType === "show_position" && renderPositionAction(message)}
+                    {/* Render Pool Recommendation if responseType is "POOL_RECOMMENDATION" */}
+                    {message.responseType === "POOL_RECOMMENDATION" && renderPoolRecommendation(message)}
 
                     <div className="text-xs text-gray-400 mt-4 flex items-center">
                       <Stars className="w-3 h-3 mr-1" />
@@ -439,7 +366,7 @@ This strategy is optimized for your preferences and current market conditions.`,
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask SeiMind about Web3, blockchain, or Sei network..."
+                  placeholder="Ask SeiMind about pools, prices, or DeFi opportunities..."
                   className="relative bg-gray-800/80 backdrop-blur-sm border-gray-700/50 text-white placeholder-gray-400 py-6 text-base rounded-2xl pr-16 shadow-2xl shadow-gray-900/50 focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300"
                 />
 
@@ -447,8 +374,8 @@ This strategy is optimized for your preferences and current market conditions.`,
                 <Button
                   onClick={listening ? stopListening : startListening}
                   className={`absolute right-2 top-1/2 transform -translate-y-1/2 h-12 w-12 p-0 rounded-full transition-all duration-500 border-0 shadow-2xl ${listening
-                      ? "bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 shadow-red-500/50 animate-pulse scale-110"
-                      : "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-500 shadow-cyan-500/50 hover:scale-110"
+                    ? "bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 shadow-red-500/50 animate-pulse scale-110"
+                    : "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-500 shadow-cyan-500/50 hover:scale-110"
                     }`}
                 >
                   <div className="relative">
@@ -464,7 +391,7 @@ This strategy is optimized for your preferences and current market conditions.`,
 
               <Button
                 onClick={handleSend}
-                disabled={!inputValue.trim()}
+                disabled={!inputValue.trim() || isTyping}
                 size="lg"
                 className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 disabled:from-gray-600 disabled:to-gray-700 text-white border-0 px-8 py-6 rounded-2xl shadow-2xl shadow-cyan-500/50 hover:scale-105 transition-all duration-300 disabled:hover:scale-100"
               >
@@ -492,178 +419,6 @@ This strategy is optimized for your preferences and current market conditions.`,
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-// Separate component for the liquidity preference form
-function LiquidityPreferenceForm({
-  onSubmit,
-  onSkip,
-}: {
-  onSubmit: (formData: LiquidityFormData) => void
-  onSkip: () => void
-}) {
-  const [formData, setFormData] = useState<LiquidityFormData>({})
-
-  const handleSubmit = () => {
-    onSubmit(formData)
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Trading Pair Preference */}
-      <div className="space-y-3">
-        <div className="flex items-center space-x-2">
-          <TrendingUp className="w-5 h-5 text-cyan-400" />
-          <label className="text-white font-medium">What pair(s) do you prefer?</label>
-          <Badge variant="secondary" className="text-xs">
-            Optional
-          </Badge>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          {["SEI/USDC", "ATOM/SEI", "WETH/USDC", "SEI/WBTC"].map((pair) => (
-            <Button
-              key={pair}
-              variant={formData.pair === pair ? "default" : "outline"}
-              onClick={() => setFormData((prev) => ({ ...prev, pair }))}
-              className={`${formData.pair === pair
-                  ? "bg-cyan-500 hover:bg-cyan-600"
-                  : "border-gray-600 text-gray-300 hover:bg-gray-700"
-                }`}
-            >
-              {pair}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Risk Profile */}
-      <div className="space-y-3">
-        <div className="flex items-center space-x-2">
-          <Shield className="w-5 h-5 text-cyan-400" />
-          <label className="text-white font-medium">What's your risk profile?</label>
-          <Badge variant="secondary" className="text-xs">
-            Optional
-          </Badge>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { value: "low", label: "Low Risk", desc: "Stable, wide ranges" },
-            { value: "medium", label: "Medium Risk", desc: "Balanced approach" },
-            { value: "high", label: "High Risk", desc: "Narrow ranges, higher APR" },
-          ].map((risk) => (
-            <Button
-              key={risk.value}
-              variant={formData.riskProfile === risk.value ? "default" : "outline"}
-              onClick={() => setFormData((prev) => ({ ...prev, riskProfile: risk.value }))}
-              className={`flex flex-col h-auto p-4 ${formData.riskProfile === risk.value
-                  ? "bg-cyan-500 hover:bg-cyan-600"
-                  : "border-gray-600 text-gray-300 hover:bg-gray-700"
-                }`}
-            >
-              <span className="font-medium">{risk.label}</span>
-              <span className="text-xs opacity-70">{risk.desc}</span>
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Investment Amount */}
-      <div className="space-y-3">
-        <div className="flex items-center space-x-2">
-          <DollarSign className="w-5 h-5 text-cyan-400" />
-          <label className="text-white font-medium">Available amount to invest?</label>
-          <Badge variant="secondary" className="text-xs">
-            Optional
-          </Badge>
-        </div>
-        <Input
-          type="text"
-          placeholder="e.g., 1000"
-          value={formData.amount || ""}
-          onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value }))}
-          className="bg-gray-800 border-gray-600 text-white"
-        />
-      </div>
-
-      {/* Return Preference */}
-      <div className="space-y-3">
-        <div className="flex items-center space-x-2">
-          <TrendingUp className="w-5 h-5 text-cyan-400" />
-          <label className="text-white font-medium">Do you prefer stable returns or volatile gains?</label>
-          <Badge variant="secondary" className="text-xs">
-            Optional
-          </Badge>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { value: "stable", label: "Stable Returns", desc: "Consistent, predictable" },
-            { value: "volatile", label: "Volatile Gains", desc: "Higher potential, more risk" },
-          ].map((pref) => (
-            <Button
-              key={pref.value}
-              variant={formData.returnPreference === pref.value ? "default" : "outline"}
-              onClick={() => setFormData((prev) => ({ ...prev, returnPreference: pref.value }))}
-              className={`flex flex-col h-auto p-4 ${formData.returnPreference === pref.value
-                  ? "bg-cyan-500 hover:bg-cyan-600"
-                  : "border-gray-600 text-gray-300 hover:bg-gray-700"
-                }`}
-            >
-              <span className="font-medium">{pref.label}</span>
-              <span className="text-xs opacity-70">{pref.desc}</span>
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Investment Duration */}
-      <div className="space-y-3">
-        <div className="flex items-center space-x-2">
-          <Clock className="w-5 h-5 text-cyan-400" />
-          <label className="text-white font-medium">How long will you invest?</label>
-          <Badge variant="secondary" className="text-xs">
-            Optional
-          </Badge>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          {["1-3 months", "3-6 months", "6-12 months", "1+ years"].map((duration) => (
-            <Button
-              key={duration}
-              variant={formData.investmentDuration === duration ? "default" : "outline"}
-              onClick={() => setFormData((prev) => ({ ...prev, investmentDuration: duration }))}
-              className={`${formData.investmentDuration === duration
-                  ? "bg-cyan-500 hover:bg-cyan-600"
-                  : "border-gray-600 text-gray-300 hover:bg-gray-700"
-                }`}
-            >
-              {duration}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex space-x-3 pt-4">
-        <Button
-          onClick={handleSubmit}
-          className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600"
-        >
-          <ChevronRight className="w-4 h-4 mr-2" />
-          Submit Preferences
-        </Button>
-        <Button
-          onClick={onSkip}
-          variant="outline"
-          className="border-gray-600 text-gray-300 hover:bg-gray-700 bg-transparent"
-        >
-          Skip Form
-        </Button>
-      </div>
-
-      <p className="text-xs text-gray-500 text-center">
-        🔒 Your preferences are processed locally and never stored. We respect your privacy.
-      </p>
     </div>
   )
 }

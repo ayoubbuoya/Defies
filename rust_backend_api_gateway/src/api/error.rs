@@ -1,19 +1,18 @@
 use actix_web::{HttpResponse, ResponseError};
 use serde_json::json;
-use std::fmt;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ApiError {
     #[error("Invalid input: {0}")]
     InvalidInput(String),
-    
+
     #[error("Service error: {0}")]
     ServiceError(String),
-    
+
     #[error("External API error: {0}")]
     ExternalApiError(String),
-    
+
     #[error("Internal server error")]
     InternalError,
 }
