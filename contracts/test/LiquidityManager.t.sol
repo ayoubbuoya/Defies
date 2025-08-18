@@ -19,58 +19,16 @@ contract LiquidityManagerTest is Test {
         liquidityManager = new LiquidityManager();
     }
 
-    function testMintLiquidityParams() public {
-        // Test that the contract can handle mint parameters correctly
-        uint256 amount0Max = 1000000000000000000; // 1 token
-        uint256 amount1Max = 1000000000000000000; // 1 token
-        int24 tickLower = -887220;
-        int24 tickUpper = 887220;
-        address pool = MOCK_POOL;
-        address recipient = USER;
-
-        // Verify parameters are set correctly
-        assertEq(pool, MOCK_POOL);
-        assertEq(recipient, USER);
-        assertEq(tickLower, -887220);
-        assertEq(tickUpper, 887220);
-        assertEq(amount0Max, 1000000000000000000);
-        assertEq(amount1Max, 1000000000000000000);
-        assertTrue(tickLower < tickUpper);
-    }
-
-    function testBurnLiquidityParams() public {
-        // Test that the contract can handle burn parameters correctly
-        LiquidityManager.BurnParams memory params = LiquidityManager
-            .BurnParams({
-                pool: MOCK_POOL,
-                tickLower: -887220,
-                tickUpper: 887220,
-                liquidity: 500000,
-                amount0Min: 450000000000000000, // 0.45 token
-                amount1Min: 450000000000000000, // 0.45 token
-                deadline: block.timestamp + 3600 // 1 hour from now
-            });
-
-        // Verify parameters are set correctly
-        assertEq(params.pool, MOCK_POOL);
-        assertEq(params.tickLower, -887220);
-        assertEq(params.tickUpper, 887220);
-        assertEq(params.liquidity, 500000);
-        assertEq(params.amount0Min, 450000000000000000);
-        assertEq(params.amount1Min, 450000000000000000);
-        assertTrue(params.deadline > block.timestamp);
-    }
-
     function testInvalidPoolReverts() public {
         // Should revert with InvalidPool error
         vm.expectRevert(LiquidityManager.InvalidPool.selector);
         liquidityManager.mintLiquidity(
             1000000000000000000, // amount0Max
             1000000000000000000, // amount1Max
-            -887220,             // tickLower
-            887220,              // tickUpper
-            address(0),          // Invalid pool address
-            USER                 // recipient
+            -887220, // tickLower
+            887220, // tickUpper
+            address(0), // Invalid pool address
+            USER // recipient
         );
     }
 
@@ -80,10 +38,10 @@ contract LiquidityManagerTest is Test {
         liquidityManager.mintLiquidity(
             1000000000000000000, // amount0Max
             1000000000000000000, // amount1Max
-            887220,              // tickLower (higher than tickUpper)
-            -887220,             // tickUpper
-            MOCK_POOL,           // pool
-            USER                 // recipient
+            887220, // tickLower (higher than tickUpper)
+            -887220, // tickUpper
+            MOCK_POOL, // pool
+            USER // recipient
         );
     }
 
@@ -91,12 +49,12 @@ contract LiquidityManagerTest is Test {
         // Should revert with InsufficientLiquidity error when both amounts are zero
         vm.expectRevert(LiquidityManager.InsufficientLiquidity.selector);
         liquidityManager.mintLiquidity(
-            0,           // amount0Max (zero)
-            0,           // amount1Max (zero)
-            -887220,     // tickLower
-            887220,      // tickUpper
-            MOCK_POOL,   // pool
-            USER         // recipient
+            0, // amount0Max (zero)
+            0, // amount1Max (zero)
+            -887220, // tickLower
+            887220, // tickUpper
+            MOCK_POOL, // pool
+            USER // recipient
         );
     }
 

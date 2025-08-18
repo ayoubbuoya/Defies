@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./libraries/LiquidityAmounts.sol";
 import "./libraries/TickMath.sol";
+import "forge-std/console.sol";
 
 /**
  * @title LiquidityManager
@@ -100,6 +101,8 @@ contract LiquidityManager is IUniswapV3MintCallback {
         address pool,
         address recipient
     ) external returns (uint256 amount0, uint256 amount1) {
+        console.log("Start mintLiquidity");
+
         // Validate inputs
         if (pool == address(0)) revert InvalidPool();
         if (tickLower >= tickUpper) revert InvalidTickRange();
@@ -122,6 +125,8 @@ contract LiquidityManager is IUniswapV3MintCallback {
 
         if (liquidity == 0) revert InsufficientLiquidity();
 
+        console.log("Minting liquidity:", liquidity);
+
         // Store mint data for callback
         MintCallbackData memory data = MintCallbackData({
             token0: token0,
@@ -131,6 +136,7 @@ contract LiquidityManager is IUniswapV3MintCallback {
             amount1Max: amount1Max
         });
 
+        console.log("Minting liquidity 2 :", liquidity);
         // Mint liquidity - this will trigger the callback
         (amount0, amount1) = poolContract.mint(
             recipient,
@@ -162,10 +168,49 @@ contract LiquidityManager is IUniswapV3MintCallback {
         uint256 amount0Owed,
         uint256 amount1Owed,
         bytes calldata data
-    ) public override {
+    ) public {
+        console.log("Start uniswapV3MintCallback");
         // Decode callback data
         MintCallbackData memory mintData = abi.decode(data, (MintCallbackData));
         address payer = mintData.payer;
+
+        if (payer == address(this)) {
+            if (amount0Owed > 0)
+                _safeTransfer(mintData.token0, msg.sender, amount0Owed);
+            if (amount1Owed > 0)
+                _safeTransfer(mintData.token1, msg.sender, amount1Owed);
+        } else {
+            if (amount0Owed > 0)
+                _safeTransferFrom(
+                    mintData.token0,
+                    mintData.payer,
+                    msg.sender,
+                    amount0Owed
+                );
+
+            if (amount1Owed > 0)
+                _safeTransferFrom(
+                    mintData.token1,
+                    mintData.payer,
+                    msg.sender,
+                    amount1Owed
+                );
+        }
+    }
+
+    function dragonswapV2MintCallback(
+        uint256 amount0Owed,
+        uint256 amount1Owed,
+        bytes calldata data
+    ) public {
+        console.log("Start DragonswapCallback");
+        // Decode callback data
+        MintCallbackData memory mintData = abi.decode(data, (MintCallbackData));
+        address payer = mintData.payer;
+
+        console.log("Payer:", payer);
+        console.log("Amount0 Owed:", amount0Owed);
+        console.log("Amount1 Owed:", amount1Owed);
 
         if (payer == address(this)) {
             if (amount0Owed > 0)
