@@ -1,18 +1,18 @@
 import { Token } from "@/types/token"
+import { TokenAdapter } from "@/adapters/token/tokenAdapter"
+import { WalletService } from "./walletService"
 
-class TokenService {
-    private baseUrl: string
+export class TokenService {
+    private tokenAdapter: TokenAdapter
+    private walletService: WalletService
 
     constructor() {
-        this.baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+        this.tokenAdapter = new TokenAdapter()
+        this.walletService = new WalletService()
     }
 
     async fetchToken(token_address: string): Promise<Token> {
-        const response = await fetch(`${this.baseUrl}/data/token/${token_address}`)
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        return response.json()
+        return this.tokenAdapter.fetchToken(token_address)
     }
 }
 

@@ -1,13 +1,15 @@
 import { PositionParams } from "@/types/dex";
 import { BaseDEXAdapter } from "./BaseDexAdapter";
 import { TransactionResult } from "@/config/dex";
+import { WalletService } from "@/services/walletService";
+import { TokenService } from "@/services/tokenService";
 
 
 
 export class DragonSwapAdapter extends BaseDEXAdapter {
     // Similar structure to UniswapV3Adapter but with DragonSwap-specific implementation
-    constructor(chainId: number, walletService: BaseWalletService, tokenService: BaseTokenService) {
-        super('dragonswap', chainId);
+    constructor(chainId: number, walletService: WalletService, tokenService: TokenService) {
+        super('dragonswap', chainId, walletService, tokenService);
     }
 
     async openPosition(params: PositionParams, userAddress: string): Promise<TransactionResult> {

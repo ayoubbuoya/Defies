@@ -1,15 +1,21 @@
 import { DEXConfig, PositionParams } from '@/types/dex';
 import { DEX_REGISTRY, TransactionResult } from '@/config/dex';
+import { WalletService } from '@/services/walletService';
+import { TokenService } from '@/services/tokenService';
 
 export abstract class BaseDEXAdapter {
     protected dexKey: string;
     protected config: DEXConfig;
     protected chainId: number;
+    protected walletService: WalletService;
+    protected tokenService: TokenService;
 
-    constructor(dexKey: string, chainId: number) {
+    constructor(dexKey: string, chainId: number, walletService: WalletService, tokenService: TokenService) {
         this.dexKey = dexKey;
         this.chainId = chainId;
         this.config = DEX_REGISTRY[dexKey];
+        this.walletService = walletService;
+        this.tokenService = tokenService;
 
         if (!this.config) {
             throw new Error(`DEX ${dexKey} not found in registry`);
