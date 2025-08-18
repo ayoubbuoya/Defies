@@ -4,11 +4,9 @@ import { WalletService } from "./walletService"
 
 export class TokenService {
     private tokenAdapter: TokenAdapter
-    private walletService: WalletService
 
     constructor() {
         this.tokenAdapter = new TokenAdapter()
-        this.walletService = new WalletService()
     }
 
     async fetchToken(token_address: string): Promise<Token> {

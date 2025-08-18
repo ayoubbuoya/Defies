@@ -2,6 +2,7 @@ import { BackendLiquidityResponse, LiquidityData, LiquidityResponse } from "@/ty
 
 export class LiquidityDataAdapter {
 
+
     static pricesFromTick(tick: number, dec0: number, dec1: number): { price0: number; price1: number } {
         const rawPrice = Math.pow(1.0001, tick);
         const price0 = rawPrice * Math.pow(10, dec0 - dec1);

@@ -1,18 +1,15 @@
+import { PollAdapter } from '@/adapters/pool/pollAdapter'
 import { Pool } from '../types/pool'
 
 class PoolService {
-    private baseUrl: string
+    private pollAdapter: PollAdapter
 
     constructor() {
-        this.baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+        this.pollAdapter = new PollAdapter()
     }
 
     async fetchPools(): Promise<Pool[]> {
-        const response = await fetch(`${this.baseUrl}/data/pools`)
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        return response.json()
+        return this.pollAdapter.fetchPools()
     }
 
     async fetchPoolById(poolId: string): Promise<Pool> {

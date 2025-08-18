@@ -1,19 +1,17 @@
+import { PriceAdapter } from '@/adapters/price/PriceAdapter'
 import { PricePoint } from '../types/pricePoint'
 
 class PriceHistoryService {
-    private baseUrl: string
+    private priceAdapter: PriceAdapter
 
     constructor() {
-        this.baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+        this.priceAdapter = new PriceAdapter()
     }
 
     async fetchPricePoints(token0: string, token1: string, interval: number, limit: number): Promise<PricePoint[]> {
-        const response = await fetch(`${this.baseUrl}/data/price-chart/${token0}/${token1}?interval=${interval}&limit=${limit}`)
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        return response.json()
+        return this.priceAdapter.fetchPricePoints(token0, token1, interval, limit)
     }
+
 }
 
 export const priceHistoryService = new PriceHistoryService()
