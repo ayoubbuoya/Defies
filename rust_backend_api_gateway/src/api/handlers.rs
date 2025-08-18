@@ -164,14 +164,16 @@ pub async fn get_price_history_tool(query: web::Query<PriceHistoryRequest>) -> i
 
 
 
+// --- Position Handlers ---
 
 // GET /positions/{pb_key}
 pub async fn get_positions_for_wallet(
-    db: web::Data<sea_orm::DatabaseConnection>,
+    data: web::Data<AppState>, // <-- FIX: Request the whole AppState
     path: web::Path<String>,
 ) -> HttpResponse {
     let pb_key = path.into_inner();
-    match position_service::get_all_positions_for_wallet(&db, pb_key).await {
+    // Use the db_connection from the AppState
+    match position_service::get_all_positions_for_wallet(&data.db_connection, pb_key).await {
         Ok(positions) => HttpResponse::Ok().json(positions),
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
@@ -188,18 +190,21 @@ pub struct AddPositionRequest {
 }
 
 pub async fn add_position_handler(
-    db: web::Data<sea_orm::DatabaseConnection>,
+    data: web::Data<AppState>, // <-- FIX: Request the whole AppState
     req: web::Json<AddPositionRequest>,
 ) -> HttpResponse {
     let r = req.into_inner();
+    // Use the db_connection from the AppState
     match position_service::add_position(
-        &db,
+        &data.db_connection,
         r.pb_key,
         r.trans_id,
         r.left,
         r.right,
         r.value_locker,
-    ).await {
+    )
+    .await
+    {
         Ok(pos) => HttpResponse::Ok().json(pos),
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
@@ -207,11 +212,12 @@ pub async fn add_position_handler(
 
 // DELETE /positions/{pb_key}/{trans_id}
 pub async fn delete_position_handler(
-    db: web::Data<sea_orm::DatabaseConnection>,
+    data: web::Data<AppState>, // <-- FIX: Request the whole AppState
     path: web::Path<(String, i32)>,
 ) -> HttpResponse {
     let (pb_key, trans_id) = path.into_inner();
-    match position_service::delete_position(&db, pb_key, trans_id).await {
+    // Use the db_connection from the AppState
+    match position_service::delete_position(&data.db_connection, pb_key, trans_id).await {
         Ok(_) => HttpResponse::Ok().body("Position deleted"),
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
