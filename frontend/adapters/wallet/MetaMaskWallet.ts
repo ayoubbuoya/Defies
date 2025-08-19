@@ -83,6 +83,12 @@ export class MetaMaskWallet implements WalletStrategy {
         return this.signer.getAddress();
     }
 
+    getSigner(): ethers.JsonRpcSigner {
+        if (!this.signer) throw new Error("Not connected")
+        return this.signer
+    }
+
+
     async sendTransaction(p: TxParams): Promise<any> {
         if (!this.signer) throw new Error("Not connected");
 
@@ -99,4 +105,7 @@ export class MetaMaskWallet implements WalletStrategy {
             throw new Error("Unsupported transaction type");
         }
     }
+
+
+
 }

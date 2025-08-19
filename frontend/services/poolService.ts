@@ -1,4 +1,4 @@
-import { PollAdapter } from '@/adapters/pool/pollAdapter'
+import { PollAdapter } from '@/adapters/apis/pollAdapter'
 import { Pool } from '../types/pool'
 
 class PoolService {

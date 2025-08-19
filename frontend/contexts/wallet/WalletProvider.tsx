@@ -2,7 +2,7 @@
 "use client"
 import { WalletStrategy, TxParams } from "../../types/wallet"
 import React, { useEffect, useState } from "react"
-import { NETWORKS } from "../../config/networks"
+import { NETWORKS } from "../../constants/networks"
 import type { NetworkConfig, WalletContextType, WalletInfo } from "../../types/wallet"
 import { getWalletStrategy } from "../../adapters/wallet/Factory";
 import GlobalLoader from "@/components/GlobalLoader"
@@ -162,6 +162,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
 
 
+
+
     const value: WalletContextType = {
         isConnected,
         isRestoring,
@@ -172,6 +174,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         availableWallets,
         selectedNetwork,
         availableNetworks: NETWORKS,
+        wallet: strategy,
         connectWallet,
         disconnectWallet,
         setShowConnectionModal,

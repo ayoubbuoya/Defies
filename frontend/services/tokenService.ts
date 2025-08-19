@@ -1,6 +1,5 @@
 import { Token } from "@/types/token"
-import { TokenAdapter } from "@/adapters/token/tokenAdapter"
-import { WalletService } from "./walletService"
+import { TokenAdapter } from "@/adapters/apis/tokenAdapter"
 
 export class TokenService {
     private tokenAdapter: TokenAdapter

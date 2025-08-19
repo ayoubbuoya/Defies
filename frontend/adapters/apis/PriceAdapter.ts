@@ -15,4 +15,3 @@ export class PriceAdapter {
         return response.json()
     }
 }
-

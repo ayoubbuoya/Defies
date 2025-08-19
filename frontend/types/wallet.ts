@@ -1,3 +1,5 @@
+import { ethers } from "ethers"
+
 export interface WalletInfo {
     id: string
     name: string
@@ -23,6 +25,7 @@ export interface NetworkConfig {
 }
 
 export interface WalletContextType {
+    wallet: WalletStrategy | null
     isConnected: boolean
     isRestoring: boolean
     address: string | null
@@ -47,6 +50,7 @@ export interface WalletStrategy {
     signMessage(address: string, message: string): Promise<string>;
     switchNetwork(network: NetworkConfig): Promise<string>; // returns address
     sendTransaction(p: TxParams): Promise<any>; // returns transaction result
+    getSigner(): ethers.JsonRpcSigner
 }
 
 export type TxParams =

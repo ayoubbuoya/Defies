@@ -7,7 +7,7 @@ import { Pool } from "@/types/pool"
 
 interface LiquidityDistributionChartProps {
     pool: Pool | null
-    currentPrice?: number
+    currentPrice: number
     priceRange?: [number, number]
     priceField?: 'price0' | 'price1'
     numBins?: number
@@ -15,7 +15,7 @@ interface LiquidityDistributionChartProps {
 
 export function LiquidityDistributionChart({
     pool,
-    currentPrice = 0.01,
+    currentPrice,
     priceRange = [0.005, 0.05],
     priceField = 'price0',
     numBins = 10
