@@ -1,0 +1,13 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+[rpc_endpoints]
+sei_mainnet = "https://evm-rpc.sei-apis.com"
+sei_testnet = "https://evm-rpc-testnet.sei-apis.com"
+
+# [etherscan]
+# sei_mainnet = { key = "${SEI_ETHERSCAN_API_KEY}", url = "https://seistream.app/api" }
