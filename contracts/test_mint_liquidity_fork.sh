@@ -23,6 +23,18 @@ echo -e "${YELLOW}Test 1: Basic Mint Liquidity${NC}"
 echo "----------------------------"
 forge test --match-contract LiquidityManagerTest --match-test testMintConcentratedLiquidity --fork-url $SEI_RPC -vvv
 
+# Test 2: Mint liquidity using NFPM on sailor
+echo -e "${YELLOW}Test 2: Mint Liquidity Using NFPM on sailor${NC}"
+echo "----------------------------"
+forge test --match-contract LiquidityManagerTest --match-test testMintLiquidityUsingNFMPSAILOR --fork-url $SEI_RPC -vvv
+
+# Test 3: Mint liquidity using NFPM on dragon
+echo -e "${YELLOW}Test 3: Mint Liquidity Using NFPM on dragon${NC}"
+echo "----------------------------"
+forge test --match-contract LiquidityManagerTest --match-test testMintLiquidityUsingNFMPDragon --fork-url $SEI_RPC -vvv
+
+echo ""
+
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ Basic mint test passed${NC}"
 else
