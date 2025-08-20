@@ -21,7 +21,17 @@ echo ""
 # Test 1: mint liquidity test
 echo -e "${YELLOW}Test 1: Mint Liquidity${NC}"
 echo "----------------------------"
-forge script script/testMintLqiuidity.s.sol:MintLiquidityScript --rpc-url sei_mainnet --broadcast
+forge script script/testMintLqiuidity.s.sol:MintLiquidityScript --rpc-url sei_mainnet
+
+# Test 2: mint liquidity using NFPM on sailor test
+echo -e "${YELLOW}Test 2: Mint Liquidity Using NFPM on sailor${NC}"
+echo "----------------------------"
+forge script script/TestMintLiquiidtySailorUsingNFPM.sol:MintLiquiditySailorUsingNFPMScript --rpc-url sei_mainnet
+
+# Test 3: mint liquidity using NFPM on dragon test
+echo -e "${YELLOW}Test 3: Mint Liquidity Using NFPM on dragon${NC}"
+echo "----------------------------"
+forge script script/TestMintLiquiidtyDragonUsingNFPM.sol:MintLiquidityDragonUsingNFPMScript --rpc-url sei_mainnet 
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ mint test passed${NC}"

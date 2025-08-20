@@ -12,6 +12,11 @@ import {console} from "forge-std/console.sol";
 contract LiquidityManagerTest is Test {
     LiquidityManager public liquidityManager;
 
+    // NFMP contract address on SEI mainnet
+    address constant SAILOR_NFMP = 0xe294d5Eb435807cD21017013Bef620ed1AeafbeB;
+    address constant DRAGONSWAP_NFMP =
+        0xa7FDcBe645d6b2B98639EbacbC347e2B575f6F70;
+
     // Real SEI mainnet addresses from DragonSwap
     address constant USDC = 0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392;
     address constant WSEI = 0xE30feDd158A2e3b13e9badaeABaFc5516e95e8C7;
@@ -153,5 +158,147 @@ contract LiquidityManagerTest is Test {
             amount0Used > 0 || amount1Used > 0,
             "Should use at least one token for concentrated position"
         );
+    }
+
+    /**
+     * @notice Test minting liquidity using NFPM contract
+     */
+    function testMintLiquidityUsingNFMPSAILOR() public {
+        console.log("\n=== Testing Mint Liquidity Using NFPM on sailor ===");
+
+        address token0 = IPool(USDC_WSEI_SAILOR_POOL).token0();
+
+        console.log("Token0 : ", token0);
+
+        // Get current pool state
+        (uint160 sqrtPriceX96, int24 currentTick, , , , , ) = IPool(
+            USDC_WSEI_SAILOR_POOL
+        ).slot0();
+        console.log("Current tick:", uint256(int256(currentTick)));
+        console.log("Current sqrtPriceX96:", sqrtPriceX96);
+
+        uint256 usdcAmount = 0.1 * 1e6; // 0.1 USDC
+        uint256 wseiAmount = 0.3 * 1e18; // 0.3 WSEI
+
+        vm.startPrank(TEST_USER);
+
+        // Approve tokens
+        IERC20(USDC).approve(address(liquidityManager), usdcAmount);
+        IERC20(WSEI).approve(address(liquidityManager), wseiAmount);
+
+        // Calculate concentrated range around current tick (±1% range)
+        int24 tickSpacing = 60; // Common tick spacing for 0.3% fee pools
+        int24 tickRange = 200; // Approximately 1% range
+
+        int24 tickLower = ((currentTick - tickRange) / tickSpacing) *
+            tickSpacing;
+        int24 tickUpper = ((currentTick + tickRange) / tickSpacing) *
+            tickSpacing;
+
+        console.log("Concentrated range - Lower:", uint256(int256(tickLower)));
+        console.log("Concentrated range - Upper:", uint256(int256(tickUpper)));
+
+        // Mint concentrated liquidity
+        (
+            uint256 tokenId,
+            uint128 liquidity,
+            uint256 amount0Used,
+            uint256 amount1Used
+        ) = liquidityManager.mintLiquidityUsingNFPM(
+                usdcAmount, //  USDC max
+                wseiAmount, //  WSEI max
+                tickLower,
+                tickUpper,
+                USDC_WSEI_SAILOR_POOL,
+                TEST_USER,
+                SAILOR_NFMP,
+                UINT256_MAX
+            );
+
+        vm.stopPrank();
+
+        console.log("Concentrated liquidity - Amount0 used:", amount0Used);
+        console.log("Concentrated liquidity - Amount1 used:", amount1Used);
+        console.log("Concentrated liquidity - Token ID:", tokenId);
+        console.log("Concentrated liquidity - Liquidity:", liquidity);
+
+        assertTrue(
+            amount0Used > 0 || amount1Used > 0,
+            "Should use at least one token for concentrated position"
+        );
+
+        assertTrue(tokenId > 0, "Token ID should be > 0");
+    }
+
+    /**
+     * @notice Test minting liquidity using NFPM contract
+     */
+    function testMintLiquidityUsingNFMPDragon() public {
+        console.log(
+            "\n=== Testing Mint Liquidity Using NFPM using dragon swap ==="
+        );
+
+        address token0 = IPool(USDC_WSEI_DRAGON_POOL).token0();
+
+        console.log("Token0 : ", token0);
+
+        // Get current pool state
+        (uint160 sqrtPriceX96, int24 currentTick, , , , , ) = IPool(
+            USDC_WSEI_DRAGON_POOL
+        ).slot0();
+        console.log("Current tick:", uint256(int256(currentTick)));
+        console.log("Current sqrtPriceX96:", sqrtPriceX96);
+
+        uint256 usdcAmount = 0.1 * 1e6; // 0.1 USDC
+        uint256 wseiAmount = 0.3 * 1e18; // 0.3 WSEI
+
+        vm.startPrank(TEST_USER);
+
+        // Approve tokens
+        IERC20(USDC).approve(address(liquidityManager), usdcAmount);
+        IERC20(WSEI).approve(address(liquidityManager), wseiAmount);
+
+        // Calculate concentrated range around current tick (±1% range)
+        int24 tickSpacing = 60; // Common tick spacing for 0.3% fee pools
+        int24 tickRange = 200; // Approximately 1% range
+
+        int24 tickLower = ((currentTick - tickRange) / tickSpacing) *
+            tickSpacing;
+        int24 tickUpper = ((currentTick + tickRange) / tickSpacing) *
+            tickSpacing;
+
+        console.log("Concentrated range - Lower:", uint256(int256(tickLower)));
+        console.log("Concentrated range - Upper:", uint256(int256(tickUpper)));
+
+        // Mint concentrated liquidity
+        (
+            uint256 tokenId,
+            uint128 liquidity,
+            uint256 amount0Used,
+            uint256 amount1Used
+        ) = liquidityManager.mintLiquidityUsingNFPM(
+                usdcAmount, //  USDC max
+                wseiAmount, //  WSEI max
+                tickLower,
+                tickUpper,
+                USDC_WSEI_DRAGON_POOL,
+                TEST_USER,
+                DRAGONSWAP_NFMP,
+                UINT256_MAX
+            );
+
+        vm.stopPrank();
+
+        console.log("Concentrated liquidity - Amount0 used:", amount0Used);
+        console.log("Concentrated liquidity - Amount1 used:", amount1Used);
+        console.log("Concentrated liquidity - Token ID:", tokenId);
+        console.log("Concentrated liquidity - Liquidity:", liquidity);
+
+        assertTrue(
+            amount0Used > 0 || amount1Used > 0,
+            "Should use at least one token for concentrated position"
+        );
+
+        assertTrue(tokenId > 0, "Token ID should be > 0");
     }
 }
