@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./libraries/LiquidityAmounts.sol";
 import "./libraries/TickMath.sol";
 import "forge-std/console.sol";
+import "./interfaces/INonfungiblePositionManager.sol";
 
 /**
  * @title LiquidityManager
@@ -145,6 +146,95 @@ contract LiquidityManager {
             liquidity,
             abi.encode(data)
         );
+
+        emit LiquidityMinted(
+            pool,
+            recipient,
+            tickLower,
+            tickUpper,
+            liquidity,
+            amount0,
+            amount1
+        );
+    }
+
+    /**
+     * @notice Mints liquidity for a given pool and tick range using NFPM (nonFungiblePOsitionManagerContract)
+     * @param amount0Max Maximum amount of token0 to use
+     * @param amount1Max Maximum amount of token1 to use
+     * @param tickLower Lower tick of the position
+     * @param tickUpper Upper tick of the position
+     * @param pool Address of the pool
+     * @param recipient Address to receive the liquidity position
+     * @param nfpm Address of the NFPM contract (Non fungible position manager contract)
+     * @param deadline The deadline for the transaction
+     *
+     * @return tokenId The token ID of the NFT representing the position
+     * @return liquidity The amount of liquidity that was minted
+     * @return amount0 The amount of token0 that was paid to mint the liquidity
+     * @return amount1 The amount of token1 that was paid to mint the liquidity
+     */
+    function mintLiquidityUsingNFPM(
+        uint256 amount0Max,
+        uint256 amount1Max,
+        int24 tickLower,
+        int24 tickUpper,
+        address pool,
+        address recipient,
+        address nfpm,
+        uint256 deadline
+    )
+        external
+        returns (
+            uint256 tokenId,
+            uint128 liquidity,
+            uint256 amount0,
+            uint256 amount1
+        )
+    {
+        console.log("Start mintLiquidityUsingNFPM");
+
+        // Validate inputs
+        if (pool == address(0)) revert InvalidPool();
+        if (tickLower >= tickUpper) revert InvalidTickRange();
+        if (amount0Max == 0 && amount1Max == 0) revert InsufficientLiquidity();
+
+        INonfungiblePositionManager nfpmContract = INonfungiblePositionManager(
+            nfpm
+        );
+        IPool poolContract = IPool(pool);
+
+        address token0 = poolContract.token0();
+        address token1 = poolContract.token1();
+        uint24 fee = poolContract.fee();
+
+        // Transfer the amounts to this contract from msg.sender
+        if (amount0Max > 0)
+            _safeTransferFrom(token0, msg.sender, address(this), amount0Max);
+        if (amount1Max > 0)
+            _safeTransferFrom(token1, msg.sender, address(this), amount1Max);
+
+        // Safe approve the nfpmContract to spend the tokens
+        _safeApprove(token0, nfpm, amount0Max);
+        _safeApprove(token1, nfpm, amount1Max);
+
+        // Prepare mint parameters
+        INonfungiblePositionManager.MintParams
+            memory params = INonfungiblePositionManager.MintParams({
+                token0: token0,
+                token1: token1,
+                fee: fee,
+                tickLower: tickLower,
+                tickUpper: tickUpper,
+                amount0Desired: amount0Max,
+                amount1Desired: amount1Max,
+                amount0Min: 0,
+                amount1Min: 0,
+                recipient: recipient,
+                deadline: deadline
+            });
+
+        (tokenId, liquidity, amount0, amount1) = nfpmContract.mint(params);
 
         emit LiquidityMinted(
             pool,
@@ -394,6 +484,14 @@ contract LiquidityManager {
         uint256 amount
     ) internal {
         SafeERC20.safeTransferFrom(IERC20(token), from, to, amount);
+    }
+
+    function _safeApprove(
+        address token,
+        address spender,
+        uint256 amount
+    ) internal {
+        SafeERC20.forceApprove(IERC20(token), spender, amount);
     }
 
     /**
