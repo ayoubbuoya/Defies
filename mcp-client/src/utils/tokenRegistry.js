@@ -1,7 +1,7 @@
 // Symbol to address mapping for Sei network ERC-20 tokens
 export const TOKEN_REGISTRY = {
   USDC: {
-    address: "0x3894085Ef7Ff0f0aeDf52E2A2704928d1Ec074F1",
+    address: "0xe15fc38f6d8c56af07bbcbe3baf5708a2bf42392",
   },
   USDT: {
     address: "0x9151434b16b9763660705744891fa906f660ecc5",
@@ -10,9 +10,9 @@ export const TOKEN_REGISTRY = {
 
 // Tool-specific symbol mapping
 export const TOKEN_MAP = {
-  SEI: { default: "sei", mcp: "wsei", rest: "sei" },
+  SEI: { default: "sei", mcp: "wsei", rest: "wsei" },
   USDC: { default: "usdc", mcp: "usdc", rest: "usdc" },
-  WSEI : { default: "sei", mcp: "wsei", rest: "sei" },
+  WSEI : { default: "sei", mcp: "wsei", rest: "wsei" },
   USDT: { default: "usdt", mcp: "usdt", rest: "usdt" },
 };
 

@@ -26,7 +26,7 @@ interface UseLiquidityManagerReturn {
     // Utilities
     clearError: () => void
     clearTxHash: () => void
-    priceToTick: (price: number, tickSpacing: number) => number
+    priceToTick: (price: number, dec0: number, dec1: number, tickSpacing: number) => number
     tickToPrice: (tick: number) => number
 }
 
@@ -165,8 +165,8 @@ export function useLiquidityManager(): UseLiquidityManagerReturn {
         }
     }, [service])
 
-    const priceToTick = useCallback((price: number, tickSpacing: number): number => {
-        return service?.priceToTick(price, tickSpacing) || 0
+    const priceToTick = useCallback((price: number, dec0: number, dec1: number, tickSpacing: number): number => {
+        return service?.priceToTick(price, dec0, dec1, tickSpacing) || 0
     }, [service])
 
     const tickToPrice = useCallback((tick: number): number => {

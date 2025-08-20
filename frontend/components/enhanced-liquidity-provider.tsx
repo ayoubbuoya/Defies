@@ -43,7 +43,26 @@ export function EnhancedLiquidityProvider() {
     const poolId = searchParams.get("pool")
     const { pool, loading: isLoadingPool, error: poolError } = usePool(poolId)
 
-    const [priceRange, setPriceRange] = useState<number[]>([0.005, 0.02])
+    const rangeParamMaxPrice = searchParams.get("maxPrice")
+    const rangeParamMinPrice = searchParams.get("minPrice")
+
+    // Initialize state with query params or defaults
+    const [priceRange, setPriceRange] = useState<number[]>(() => {
+        if (rangeParamMaxPrice && rangeParamMinPrice) {
+            try {
+                const max = Number(rangeParamMaxPrice)
+                const min = Number(rangeParamMinPrice)
+                if (!isNaN(min) && !isNaN(max) && min < max) {
+                    return [min, max]
+                }
+            } catch (err) {
+                console.warn(`Invalid range parameter: ${rangeParamMinPrice} - ${rangeParamMaxPrice}`)
+            }
+        }
+        return [0.005, 0.02] // Default range
+    })
+
+
     const [token0Amount, setToken0Amount] = useState("")
     const [token1Amount, setToken1Amount] = useState("")
     const [isLoading, setIsLoading] = useState(false)
@@ -117,8 +136,8 @@ export function EnhancedLiquidityProvider() {
         const tickSpacing = getTickSpacing(pool.fee_tier)
 
         // Convert prices to raw ticks
-        const rawTickLower = priceToTick(priceRange[0], tickSpacing)
-        const rawTickUpper = priceToTick(priceRange[1], tickSpacing)
+        const rawTickLower = priceToTick(priceRange[0], pool.token0.decimals, pool.token1.decimals, tickSpacing)
+        const rawTickUpper = priceToTick(priceRange[1], pool.token0.decimals, pool.token1.decimals, tickSpacing)
 
         // Align ticks to tick spacing
         const alignedTickLower = Math.floor(rawTickLower / tickSpacing) * tickSpacing
@@ -406,7 +425,7 @@ export function EnhancedLiquidityProvider() {
     }, [])
 
     const setFullRange = useCallback(() => {
-        setIsFullRange(true)
+        setIsFullRange(fullRange => !fullRange)
         // Clear amounts to force recalculation
         setToken0Amount("")
         setToken1Amount("")

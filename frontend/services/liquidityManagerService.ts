@@ -107,17 +107,21 @@ export class LiquidityManagerService {
         }
     }
 
-    // Utility method to convert price to tick (you might want to move this to a separate utility)
-    priceToTick(price: number, tickSpacing: number = 60): number {
-        if (price <= 0) return -887272; // Min tick
+    priceToTick(price: number, dec0: number, dec1: number, tickSpacing: number = 60): number {
+        if (price <= 0) {
+            throw new Error(`Invalid price: ${price}`);
+        }
 
-        // Calculate raw tick
-        const rawTick = Math.floor(Math.log(price) / Math.log(1.0001));
+        // Adjust price for decimals difference
+        const adjustedPrice = price * Math.pow(10, dec1 - dec0);
 
-        // Align to tick spacing
+        // Compute raw tick
+        const rawTick = Math.log(adjustedPrice) / Math.log(1.0001);
+
+        // Align to tick spacing (rounding down)
         const alignedTick = Math.floor(rawTick / tickSpacing) * tickSpacing;
 
-        // Ensure bounds
+        // Bounds from Uniswap V3
         const MIN_TICK = -887272;
         const MAX_TICK = 887272;
 

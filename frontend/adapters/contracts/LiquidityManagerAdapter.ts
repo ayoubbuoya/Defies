@@ -2,6 +2,8 @@ import { ethers } from 'ethers'
 import { Pool } from '@/types/pool'
 import { WalletStrategy } from "@/types/wallet"
 import { LIQUIDITY_MANAGER_ABI, ERC20_ABI, LIQUIDITY_MANAGER_ADDRESS } from '../../constants/contracts'
+import { getDexConfig } from '@/constants/dexs'
+
 
 export class LiquidityManagerAdapter {
     private contractAddress: string
@@ -27,27 +29,24 @@ export class LiquidityManagerAdapter {
         const amount0Parsed = ethers.parseUnits(amount0, decimals0)
         const amount1Parsed = ethers.parseUnits(amount1, decimals1)
 
-        console.log('Minting liquidity with params:', {
-            poolId: pool.id,
-            amount0: amount0Parsed,
-            amount1: amount1Parsed,
-            tickLower,
-            tickUpper,
-            recipient: recipientAddress
-        })
+        const nfpmAddress = getDexConfig(pool.protocol).nfpmAddress
+        //const deadline = Math.floor(Date.now() / 1000) + 60 * 20 // 20 minutes from now
+        const deadline = ethers.MaxInt256
 
         return await this.wallet.sendTransaction({
             type: "contract",
             contract: this.contractAddress,
             abi: LIQUIDITY_MANAGER_ABI,
-            method: "mintLiquidity",
+            method: "mintLiquidityUsingNFPM",
             args: [
                 amount0Parsed,
                 amount1Parsed,
                 tickLower,
                 tickUpper,
                 pool.id,
-                recipientAddress
+                recipientAddress,
+                nfpmAddress,
+                deadline
             ]
         })
     }

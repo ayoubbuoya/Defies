@@ -22,7 +22,7 @@ pub async fn get_price_history_analysis(
     );
 
     let data_provider =
-        get_data_provider("binance").ok_or_else(|| anyhow!("Unsupported wallet type"))?;
+        get_data_provider("sailor").ok_or_else(|| anyhow!("Unsupported wallet type"))?;
 
     let price_data = data_provider
         .get_price_data(token0, token1, interval, limit)
