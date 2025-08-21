@@ -2,7 +2,7 @@
 
 import { Suspense } from "react"
 import { TopNavigation } from "@/components/top-navigation"
-import { EnhancedLiquidityProvider } from "@/components/enhanced-liquidity-provider"
+import { LiquidityProvider } from "@/components/liquidity-provider"
 import { useWallet } from "@/contexts/wallet/WalletProvider"
 import { Simple404 } from "@/components/not-connected-404"
 
@@ -13,7 +13,7 @@ function LiquidityPageContent() {
         return <Simple404 />
     }
 
-    return <EnhancedLiquidityProvider />
+    return <LiquidityProvider />
 }
 
 export default function LiquidityPage() {
