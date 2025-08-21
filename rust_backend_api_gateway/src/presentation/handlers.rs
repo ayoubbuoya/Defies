@@ -5,14 +5,13 @@ use crate::application::dtos::liquidity_data::LiquidityDataQuery;
 use crate::application::dtos::price_history::PriceHistoryRequest;
 use crate::config::mcp_client_base_url;
 use crate::service::position_service;
-use crate::service::prompt_pipeline_service;
 use actix_web::{HttpResponse, Responder, get, post, web};
 use serde::Deserialize;
 use tracing::{error, info};
 
 use crate::application::use_cases::{
-    get_graph_data, get_kline_data, get_pool_list, get_price_history_analysis, get_token_symbol,
-    handle_auth,
+    forward_prompt_to_backend, get_graph_data, get_kline_data, get_pool_list,
+    get_price_history_analysis, get_token_symbol, handle_auth,
 };
 
 // --- Authentication Handler ---
@@ -64,13 +63,7 @@ pub async fn prompt_handler(data: web::Json<PromptRequest>) -> impl Responder {
     println!("   Prompt: {}", data.prompt);
     println!("   Address: {:?}", data.address);
 
-    match prompt_pipeline_service::forward_prompt_to_backend(
-        &data.prompt,
-        &data.address,
-        &nodejs_backend_url,
-    )
-    .await
-    {
+    match forward_prompt_to_backend(&data.prompt, &data.address, &nodejs_backend_url).await {
         Ok(nodejs_response) => {
             println!("✅ Successfully processed request");
             // Return the answer directly as JSON (not wrapped in PromptResponse)

@@ -1,19 +1,6 @@
+use crate::application::dtos::ask::{NodeJsRequest, NodeJsResponse};
 use reqwest;
-use serde::{Deserialize, Serialize};
 use std::error::Error;
-
-/// Represents the request body to be sent to the Node.js backend.
-#[derive(Debug, Serialize)]
-struct NodeJsRequest<'a> {
-    prompt: &'a str,
-    address: &'a str,
-}
-
-/// Represents the expected response from the Node.js backend.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct NodeJsResponse {
-    pub answer: serde_json::Value, // Changed to Value to handle both string and object
-}
 
 /// Sends a prompt to the Node.js backend and returns the response as-is.
 pub async fn forward_prompt_to_backend(

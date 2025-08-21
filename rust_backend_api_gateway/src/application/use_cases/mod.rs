@@ -10,3 +10,5 @@ pub mod get_pool_list;
 pub use get_pool_list::*;
 pub mod get_price_history_analysis;
 pub use get_price_history_analysis::*;
+pub mod forward_prompt_to_backend;
+pub use forward_prompt_to_backend::*;
