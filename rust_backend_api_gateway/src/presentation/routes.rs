@@ -1,10 +1,7 @@
-use crate::{
-    presentation::handlers::{
-        add_chat, add_position_handler, delete_position_handler, get_chat, get_graph_data_handler,
-        get_pools_handler, get_positions_for_wallet, get_price_history_tool,
-        get_token_pair_price_history, get_token_symbol_handler, prompt_handler, verify_signature,
-    },
-    service,
+use crate::presentation::handlers::{
+    add_chat, add_position_handler, delete_position_handler, get_chat, get_graph_data_handler,
+    get_pools_handler, get_positions_for_wallet, get_price_history_tool,
+    get_token_pair_price_history, get_token_symbol_handler, prompt_handler, verify_signature,
 };
 use actix_web::web;
 

@@ -1,10 +1,12 @@
 use crate::AppState;
 use crate::application::dtos::ask::PromptRequest;
 use crate::application::dtos::auth::{AuthRequest, AuthResponse};
+use crate::application::dtos::chat::AddChatRequest;
 use crate::application::dtos::liquidity_data::LiquidityDataQuery;
+use crate::application::dtos::position::AddPositionRequest;
 use crate::application::dtos::price_history::PriceHistoryRequest;
+use crate::application::service::position_service;
 use crate::config::mcp_client_base_url;
-use crate::service::position_service;
 use actix_web::{HttpResponse, Responder, get, post, web};
 use serde::Deserialize;
 use tracing::{error, info};
@@ -170,15 +172,6 @@ pub async fn get_positions_for_wallet(
 }
 
 // POST /positions
-#[derive(serde::Deserialize)]
-pub struct AddPositionRequest {
-    pub pb_key: String,
-    pub trans_id: i32,
-    pub left: f32,
-    pub right: f32,
-    pub value_locker: f32,
-}
-
 pub async fn add_position_handler(
     data: web::Data<AppState>, // <-- FIX: Request the whole AppState
     req: web::Json<AddPositionRequest>,
@@ -211,11 +204,6 @@ pub async fn delete_position_handler(
         Ok(_) => HttpResponse::Ok().body("Position deleted"),
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
-}
-#[derive(Deserialize)]
-pub struct AddChatRequest {
-    pub public_key: String,
-    pub conversation: String,
 }
 
 pub async fn add_chat(data: web::Data<AppState>, req: web::Json<AddChatRequest>) -> HttpResponse {

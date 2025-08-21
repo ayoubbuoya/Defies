@@ -4,8 +4,8 @@ use dotenvy::dotenv;
 use sea_orm::{Database, DatabaseConnection};
 use std::env;
 
+use application::service::chat_service::ChatService;
 use presentation::routes::init_routes;
-use service::chat_service::ChatService;
 
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::EnvFilter;
@@ -16,7 +16,6 @@ mod domain;
 mod infrastructure;
 mod math;
 mod presentation;
-mod service;
 
 struct AppState {
     db_connection: DatabaseConnection,
