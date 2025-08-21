@@ -1,12 +1,12 @@
 use crate::domain::repositories::data_provider::DataProvider;
 use crate::domain::repositories::dex_provider::DexProvider;
 
+use crate::application::dtos::price_history::PricePoint;
 use crate::config::sailor_api_base_url;
 use crate::domain::services::data::{ActiveLiquidityResponse, LiquidityTick, Token};
 use crate::domain::services::data::{
     KlineResponse, SailorPoolListResponse, SailorPoolStats, UnifiedPool,
 };
-use crate::dtos::price_history::PricePoint;
 
 use anyhow::Result;
 use async_trait::async_trait;

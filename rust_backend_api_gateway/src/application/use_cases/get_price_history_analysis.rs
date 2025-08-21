@@ -1,4 +1,4 @@
-use crate::dtos::price_history::{
+use crate::application::dtos::price_history::{
     PoolInfo, PriceHistoryResponse, PricePoint, PriceRange, RecentPrice, RecommendationContext,
     VolatilityInfo,
 };

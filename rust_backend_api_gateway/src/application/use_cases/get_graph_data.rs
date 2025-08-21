@@ -1,7 +1,5 @@
-use crate::domain::repositories::data_provider::DataProvider;
 use crate::domain::repositories::dex_provider::DexProvider;
 use crate::domain::services::data::ActiveLiquidityResponse;
-use crate::dtos::price_history::PricePoint;
 use crate::infrastructure::data::dragonswap_data_provider::DragonSwapDataProvider;
 use crate::infrastructure::data::sailor_data_provider::SailorDataProvider;
 use anyhow::Result;
@@ -36,18 +34,4 @@ pub async fn get_graph_data(pool_address: &str) -> Result<ActiveLiquidityRespons
             Err(e.into())
         }
     }
-}
-
-pub async fn get_kline_data(
-    token0_symbol: &str,
-    token1_symbol: &str,
-    interval_minutes: u32,
-    limit: u32,
-) -> Result<Vec<PricePoint>, Box<dyn Error>> {
-    let data_provider = SailorDataProvider::new();
-    let response = data_provider
-        .get_price_data(token0_symbol, token1_symbol, interval_minutes, limit)
-        .await?;
-
-    Ok(response)
 }

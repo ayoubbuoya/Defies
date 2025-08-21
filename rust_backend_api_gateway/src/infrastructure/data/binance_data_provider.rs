@@ -1,6 +1,6 @@
+use crate::application::dtos::price_history::PricePoint;
 use crate::config::binance_api_base_url;
 use crate::domain::repositories::data_provider::DataProvider;
-use crate::dtos::price_history::PricePoint;
 use anyhow::{Result, anyhow};
 use async_trait::async_trait;
 use reqwest;

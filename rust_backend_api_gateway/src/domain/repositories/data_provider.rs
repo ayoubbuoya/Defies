@@ -1,4 +1,4 @@
-use crate::dtos::price_history::PricePoint;
+use crate::application::dtos::price_history::PricePoint;
 use anyhow::Result;
 use async_trait::async_trait;
 

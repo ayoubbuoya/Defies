@@ -1,4 +1,4 @@
-use crate::dtos::auth::AuthRequest;
+use crate::application::dtos::auth::AuthRequest;
 use actix_web::HttpResponse;
 
 pub trait WalletVerifier {

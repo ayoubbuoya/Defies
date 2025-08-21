@@ -4,21 +4,19 @@ use dotenvy::dotenv;
 use sea_orm::{Database, DatabaseConnection};
 use std::env;
 
-use api::routes::init_routes;
+use presentation::routes::init_routes;
 use service::chat_service::ChatService;
 
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::EnvFilter;
 
-
-mod api;
+mod application;
 mod config;
 mod domain;
-mod dtos;
 mod infrastructure;
 mod math;
+mod presentation;
 mod service;
-
 
 struct AppState {
     db_connection: DatabaseConnection,
@@ -33,12 +31,10 @@ async fn main() -> std::io::Result<()> {
         .with_test_writer()
         .init();
 
-
     dotenv().ok();
 
     // SQL Database connection
-    let database_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set in .env file");
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");
 
     let db_connection: DatabaseConnection = match Database::connect(&database_url).await {
         Ok(db) => {
@@ -55,7 +51,8 @@ async fn main() -> std::io::Result<()> {
     };
 
     // MongoDB Chat Service connection
-    let mongo_uri = env::var("MONGODB_URI").unwrap_or_else(|_| "mongodb://localhost:27017".to_string());
+    let mongo_uri =
+        env::var("MONGODB_URI").unwrap_or_else(|_| "mongodb://localhost:27017".to_string());
     let chat_service = ChatService::new(&mongo_uri)
         .await
         .expect("Failed to connect to MongoDB");

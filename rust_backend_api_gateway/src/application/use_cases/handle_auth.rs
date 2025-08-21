@@ -1,5 +1,5 @@
+use crate::application::dtos::auth::AuthRequest;
 use crate::domain::repositories::jwt::JwtEncoder;
-use crate::dtos::auth::AuthRequest;
 use crate::infrastructure::jwt::Hs256Jwt;
 use crate::infrastructure::wallet::get_verifier;
 use actix_web::HttpResponse;
