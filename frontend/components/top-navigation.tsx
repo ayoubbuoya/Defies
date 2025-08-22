@@ -58,31 +58,24 @@ export function TopNavigation({ activeView, setActiveView }: TopNavigationProps)
           <div className="flex items-center space-x-8">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center overflow-hidden">
-                  {!logoError ? (
-                    <Image
-                      src="/logo.png"
-                      alt="SeiMind Logo"
-                      width={24}
-                      height={24}
-                      className="w-6 h-6 object-contain"
-                      onError={() => setLogoError(true)}
-                      priority
-                    />
-                  ) : (
-                    <Sparkles className="w-5 h-5 text-white" />
-                  )}
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse flex items-center justify-center">
-                    <Sparkles className="w-1.5 h-1.5 text-white" />
-                  </div>
-                </div>
-              </div>
+              {!logoError ? (
+                <Image
+                  src="/logo.png"
+                  alt="Defies Logo"
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 object-contain"
+                  onError={() => setLogoError(true)}
+                  priority
+                />
+              ) : (
+                <Sparkles className="w-16 h-16 text-blue-400" />
+              )}
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  SeiMind
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Defies
                 </h1>
-                <p className="text-xs text-gray-500 leading-none">AI-Powered Web3</p>
+                <p className="text-sm text-gray-500 leading-none">Defies conventional DeFi</p>
               </div>
             </div>
 
@@ -156,31 +149,24 @@ export function TopNavigation({ activeView, setActiveView }: TopNavigationProps)
           <div className="flex items-center justify-between">
             {/* Logo Section */}
             <div className="flex items-center space-x-3">
-              <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-lg flex items-center justify-center overflow-hidden">
-                  {!logoError ? (
-                    <Image
-                      src="/logo.png"
-                      alt="SeiMind Logo"
-                      width={24}
-                      height={24}
-                      className="w-6 h-6 object-contain"
-                      onError={() => setLogoError(true)}
-                      priority
-                    />
-                  ) : (
-                    <Sparkles className="w-5 h-5 text-white" />
-                  )}
-                  <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full animate-pulse flex items-center justify-center">
-                    <Sparkles className="w-1.5 h-1.5 text-white" />
-                  </div>
-                </div>
-              </div>
+              {!logoError ? (
+                <Image
+                  src="/logo.png"
+                  alt="Defies Logo"
+                  width={48}
+                  height={48}
+                  className="w-12 h-12 object-contain"
+                  onError={() => setLogoError(true)}
+                  priority
+                />
+              ) : (
+                <Sparkles className="w-12 h-12 text-blue-400" />
+              )}
               <div>
-                <h1 className="text-lg font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  SeiMind
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Defies
                 </h1>
-                <p className="text-xs text-gray-500 leading-none">AI-Powered Web3</p>
+                <p className="text-sm text-gray-500 leading-none">Defies conventional DeFi</p>
               </div>
             </div>
 

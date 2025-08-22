@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import Image from "next/image"
+import { useState } from "react"
 import {
     Github,
     Twitter,
@@ -18,25 +20,20 @@ import {
 
 export function Footer() {
     const currentYear = new Date().getFullYear()
+    const [logoError, setLogoError] = useState(false)
 
     const socialLinks = [
         {
             name: "Twitter",
-            href: "https://twitter.com/seimind",
+            href: "https://x.com/SeiDefies",
             icon: Twitter,
             color: "hover:text-blue-400",
         },
         {
             name: "GitHub",
-            href: "https://github.com/seimind",
+            href: "https://github.com/ayoubbuoya/Defies",
             icon: Github,
             color: "hover:text-gray-300",
-        },
-        {
-            name: "Discord",
-            href: "https://discord.gg/seimind",
-            icon: MessageCircle,
-            color: "hover:text-indigo-400",
         },
     ]
 
@@ -93,14 +90,25 @@ export function Footer() {
                     {/* Brand Section */}
                     <div className="space-y-4">
                         <div className="flex items-center space-x-3">
-                            <div className="relative w-10 h-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                                <Zap className="w-5 h-5 text-white" />
-                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse flex items-center justify-center">
-                                    <Sparkles className="w-1.5 h-1.5 text-white" />
+                            {!logoError ? (
+                                <Image
+                                    src="/logo.png"
+                                    alt="Defies Logo"
+                                    width={40}
+                                    height={40}
+                                    className="w-10 h-10 object-contain"
+                                    onError={() => setLogoError(true)}
+                                />
+                            ) : (
+                                <div className="relative w-10 h-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                                    <Zap className="w-5 h-5 text-white" />
+                                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse flex items-center justify-center">
+                                        <Sparkles className="w-1.5 h-1.5 text-white" />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                             <h3 className="text-xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                                SeiMind
+                                Defies
                             </h3>
                         </div>
                         <p className="text-gray-400 text-sm leading-relaxed">
@@ -148,20 +156,10 @@ export function Footer() {
                     <div className="space-y-4">
                         <h4 className="text-white font-semibold">Community</h4>
                         <ul className="space-y-2">
+
                             <li>
                                 <a
-                                    href="https://discord.gg/seimind"
-                                    className="text-gray-400 hover:text-indigo-400 transition-colors duration-200 text-sm flex items-center space-x-2"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <MessageCircle className="w-3 h-3" />
-                                    <span>Discord Server</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://twitter.com/seimind"
+                                    href="https://x.com/SeiDefies"
                                     className="text-gray-400 hover:text-blue-400 transition-colors duration-200 text-sm flex items-center space-x-2"
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -172,7 +170,7 @@ export function Footer() {
                             </li>
                             <li>
                                 <a
-                                    href="https://github.com/seimind"
+                                    href="https://github.com/ayoubbuoya/Defies"
                                     className="text-gray-400 hover:text-gray-300 transition-colors duration-200 text-sm flex items-center space-x-2"
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -209,19 +207,13 @@ export function Footer() {
                                 </li>
                             ))}
                         </ul>
-                        <div className="pt-2">
-                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                                <Activity className="w-2 h-2 mr-1" />
-                                System Operational
-                            </Badge>
-                        </div>
                     </div>
                 </div>
 
                 {/* Bottom Section */}
                 <div className="border-t border-gray-800/50 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                     <p className="text-gray-500 text-sm">
-                        © {currentYear} SeiMind. All rights reserved. Built with ❤️ for the Web3 community.
+                        © {currentYear} Defies. All rights reserved. Built with ❤️ for the Web3 community.
                     </p>
                     <div className="flex items-center space-x-4 text-xs text-gray-500">
                         <span>Powered by Sei Network</span>

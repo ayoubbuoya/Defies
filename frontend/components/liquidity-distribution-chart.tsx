@@ -1,4 +1,3 @@
-// components/LiquidityDistributionChart.tsx
 "use client"
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts"
@@ -54,10 +53,10 @@ export function LiquidityDistributionChart({
         if (active && payload && payload.length) {
             const data = payload[0].payload
             return (
-                <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-xl">
+                <div className="bg-gray-800/95 border border-gray-600/50 rounded-lg p-3 shadow-xl backdrop-blur-sm">
                     <p className="text-white font-semibold">Price: {formatPrice(data.price)}</p>
                     <p className="text-purple-400">Liquidity: {formatLiquidity(data.liquidity)}</p>
-                    {data.inRange && <p className="text-green-400 text-xs">✓ In selected range</p>}
+                    {data.inRange && <p className="text-blue-400 text-xs">✓ In selected range</p>}
                 </div>
             )
         }
@@ -67,7 +66,10 @@ export function LiquidityDistributionChart({
     if (loading) {
         return (
             <div className="w-full h-full flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
+                <div className="flex items-center space-x-3 text-white">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+                    <span>Loading liquidity data...</span>
+                </div>
             </div>
         )
     }
@@ -75,11 +77,11 @@ export function LiquidityDistributionChart({
     if (error) {
         return (
             <div className="w-full h-full flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-red-400 mb-2">Failed to load liquidity data</p>
+                <div className="text-center space-y-3">
+                    <p className="text-pink-400 font-semibold">Failed to load liquidity data</p>
                     <button
                         onClick={refetch}
-                        className="px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700"
+                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-all duration-300"
                     >
                         Retry
                     </button>
@@ -89,9 +91,10 @@ export function LiquidityDistributionChart({
     }
 
     return (
-        <div className="w-full h-full">
-            <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-white">
+        <div className="w-full h-full flex flex-col">
+            {/* Header - reduced padding */}
+            <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-lg font-semibold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                     Liquidity Distribution ({priceField === 'price0' ? 'Token0' : 'Token1'} Price)
                 </h3>
                 <div className="text-sm text-gray-400">
@@ -99,107 +102,115 @@ export function LiquidityDistributionChart({
                 </div>
             </div>
 
-            <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <defs>
-                        <linearGradient id="liquidityGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#06B6D4" stopOpacity={0.3} />
-                        </linearGradient>
-                        <linearGradient id="selectedLiquidityGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10B981" stopOpacity={0.9} />
-                            <stop offset="95%" stopColor="#10B981" stopOpacity={0.4} />
-                        </linearGradient>
-                    </defs>
+            {/* Chart Container - optimized height */}
+            <div className="flex-1 min-h-0" style={{ height: 'calc(100% - 120px)' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 15, right: 25, left: 15, bottom: 15 }}>
+                        <defs>
+                            <linearGradient id="liquidityGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.3} />
+                            </linearGradient>
+                            <linearGradient id="selectedLiquidityGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.9} />
+                                <stop offset="95%" stopColor="#EC4899" stopOpacity={0.4} />
+                            </linearGradient>
+                        </defs>
 
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <CartesianGrid strokeDasharray="2 2" stroke="#4B5563" opacity={0.3} />
 
-                    <XAxis
-                        dataKey="price"
-                        stroke="#9CA3AF"
-                        fontSize={12}
-                        tickFormatter={formatPrice}
-                        type="number"
-                        scale="log"
-                        domain={["dataMin", "dataMax"]}
-                    />
+                        <XAxis
+                            dataKey="price"
+                            stroke="#9CA3AF"
+                            fontSize={10}
+                            tickFormatter={formatPrice}
+                            type="number"
+                            scale="log"
+                            domain={["dataMin", "dataMax"]}
+                            axisLine={false}
+                            tickLine={false}
+                        />
 
-                    <YAxis
-                        stroke="#9CA3AF"
-                        fontSize={12}
-                        tickFormatter={formatLiquidity}
-                        label={{
-                            value: "Liquidity",
-                            angle: -90,
-                            position: "insideLeft",
-                            style: { textAnchor: "middle", fill: "#9CA3AF" },
-                        }}
-                    />
+                        <YAxis
+                            stroke="#9CA3AF"
+                            fontSize={10}
+                            tickFormatter={formatLiquidity}
+                            axisLine={false}
+                            tickLine={false}
+                            label={{
+                                value: "Liquidity",
+                                angle: -90,
+                                position: "insideLeft",
+                                style: { textAnchor: "middle", fill: "#9CA3AF" },
+                            }}
+                        />
 
-                    <Tooltip content={<CustomTooltip />} />
+                        <Tooltip content={<CustomTooltip />} />
 
-                    {/* Current Price Reference Line */}
-                    <ReferenceLine
-                        x={currentPrice}
-                        stroke="#F59E0B"
-                        strokeWidth={3}
-                        strokeDasharray="none"
-                        label={{ value: "Current Price", position: "top", fill: "#F59E0B" }}
-                    />
+                        {/* Current Price Reference Line */}
+                        <ReferenceLine
+                            x={currentPrice}
+                            stroke="#EC4899"
+                            strokeWidth={2}
+                            strokeDasharray="6 6"
+                            label={{ value: "Current Price", position: "top", fill: "#EC4899" }}
+                        />
 
-                    {/* Price Range Boundaries */}
-                    <ReferenceLine
-                        x={priceRange[0]}
-                        stroke="#10B981"
-                        strokeWidth={2}
-                        strokeDasharray="8 4"
-                        label={{ value: "Min", position: "topLeft", fill: "#10B981" }}
-                    />
+                        {/* Price Range Boundaries */}
+                        <ReferenceLine
+                            x={priceRange[0]}
+                            stroke="#3B82F6"
+                            strokeWidth={1}
+                            strokeDasharray="4 4"
+                            strokeOpacity={0.7}
+                            label={{ value: "Min", position: "topLeft", fill: "#3B82F6" }}
+                        />
 
-                    <ReferenceLine
-                        x={priceRange[1]}
-                        stroke="#10B981"
-                        strokeWidth={2}
-                        strokeDasharray="8 4"
-                        label={{ value: "Max", position: "topRight", fill: "#10B981" }}
-                    />
+                        <ReferenceLine
+                            x={priceRange[1]}
+                            stroke="#8B5CF6"
+                            strokeWidth={1}
+                            strokeDasharray="4 4"
+                            strokeOpacity={0.7}
+                            label={{ value: "Max", position: "topRight", fill: "#8B5CF6" }}
+                        />
 
-                    <Bar dataKey="liquidityFormatted" radius={[2, 2, 0, 0]} opacity={0.8}>
-                        {chartData.map((entry, idx) => (
-                            <Cell
-                                key={`cell-${idx}`}
-                                fill={entry.inRange ? "url(#selectedLiquidityGradient)" : "url(#liquidityGradient)"}
-                                stroke={entry.inRange ? "#10B981" : "#06B6D4"}
-                                strokeWidth={1}
-                            />
-                        ))}
-                    </Bar>
-                </BarChart>
-            </ResponsiveContainer>
+                        <Bar dataKey="liquidityFormatted" radius={[2, 2, 0, 0]} opacity={0.8}>
+                            {chartData.map((entry, idx) => (
+                                <Cell
+                                    key={`cell-${idx}`}
+                                    fill={entry.inRange ? "url(#selectedLiquidityGradient)" : "url(#liquidityGradient)"}
+                                    stroke={entry.inRange ? "#3B82F6" : "#8B5CF6"}
+                                    strokeWidth={1}
+                                />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
 
-            {/* Legend */}
-            <div className="mt-4 flex items-center justify-center space-x-6 text-sm">
-                <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-cyan-400 rounded"></div>
-                    <span className="text-gray-300">Available Liquidity</span>
+            {/* Legend - compact */}
+            <div className="mt-3 flex items-center justify-center space-x-4 text-xs">
+                <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-blue-400 rounded"></div>
+                    <span className="text-gray-300">Available</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-400 rounded"></div>
-                    <span className="text-gray-300">Selected Range</span>
+                <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-purple-400 rounded"></div>
+                    <span className="text-gray-300">Selected</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-yellow-400 rounded"></div>
-                    <span className="text-gray-300">Current Price</span>
+                <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-pink-400 rounded"></div>
+                    <span className="text-gray-300">Current</span>
                 </div>
             </div>
 
-            {/* Status indicator */}
+            {/* Status indicator - compact */}
             {liquidity?.status && (
-                <div className="mt-2 text-xs text-gray-500 text-center">
+                <div className="mt-1 text-xs text-gray-500 text-center">
                     Status: {liquidity.status}
                 </div>
             )}
         </div>
     )
 }
-

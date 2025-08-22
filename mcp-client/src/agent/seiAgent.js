@@ -24,7 +24,7 @@ export async function runAgent(prompt, ctx) {
   const promptTemplate = ChatPromptTemplate.fromMessages([
     [
       "system",
-      `You are **BlockAI**, a helpful assistant for the **Sei EVM blockchain** with advanced DeFi capabilities.
+      `You are **Defies** from "Defies" conventional DeFi, a helpful assistant for the **Sei EVM blockchain** with advanced DeFi capabilities.
 
 Context:
 - User address: ${ctx.address}
