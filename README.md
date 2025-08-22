@@ -32,7 +32,7 @@ DeFies is an all-in-one DeFi platform that offers:
 - **📊 Advanced Analytics**: Real-time insights and personalized recommendations  
 - **🔗 DEX Integration**: Direct interaction with multiple DEXes without leaving our platform
 - **💰 Smart Liquidity Management**: AI-suggested concentrated liquidity positions
-- **🔍 Portfolio Tracking**: Comprehensive balance and position monitoring
+- **🔍 Portfolio Tracking**: Comprehensive balance monitoring
 - **🛠️ Developer Tools**: Open-source tools for the Sei ecosystem
 
 ## 🏗️ Architecture Overview
@@ -43,8 +43,9 @@ DeFies is built with a modern, scalable architecture designed for reliability an
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │                 │    │                  │    │                 │
 │   Frontend      │◄──►│   Rust Backend   │◄──►│   MCP Client    │
-│   (Next.js)     │    │   (API Gateway)  │    │   (AI Agent)    │
-│                 │    │                  │    │                 │
+│   (Next.js)     │    │  (API Gateway +  │    │   (AI Agent)    │
+│                 │    │   External APIs  |    |                 |
+|                 │    |    integration)  |    |                 |
 └─────────────────┘    └──────────────────┘    └─────────────────┘
          │                       │                       │
          │                       │                       │
@@ -179,7 +180,7 @@ mcp-client/
 - Integration with external APIs via Rust backend
 - Sei blockchain tools and utilities
 - Natural language processing for DeFi queries
-- Real-time balance and portfolio tracking
+- Real-time balance tracking
 - Smart recommendations engine
 - Token and pool data analysis
 
