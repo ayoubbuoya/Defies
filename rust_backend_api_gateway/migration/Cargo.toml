@@ -1,0 +1,18 @@
+# migration/Cargo.toml
+[package]
+name = "migration"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "migration"
+path = "src/lib.rs"
+
+[[bin]]
+name = "migration-runner"
+path = "src/main.rs"
+
+
+[dependencies]
+sea-orm-migration = { version = "0.12.15", features = ["sqlx-postgres", "runtime-tokio-rustls"] } # Changed feature
+tokio = { version = "1.38.0", features = ["full"] }

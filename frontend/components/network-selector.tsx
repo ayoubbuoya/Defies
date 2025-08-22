@@ -1,24 +1,13 @@
 "use client"
 
-import { useWallet } from "@/contexts/wallet/wallet-context"
+import { useWallet } from "@/contexts/wallet/WalletProvider"
 import { Button } from "@/components/ui/button"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ChevronDown, Globe, Wifi, WifiOff } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 export function NetworkSelector() {
-    const {
-        selectedNetwork,
-        availableNetworks,
-        switchNetwork,
-        isConnecting,
-        isConnected
-    } = useWallet()
+    const { selectedNetwork, availableNetworks, switchNetwork, isConnecting, isConnected } = useWallet()
 
     const handleNetworkSwitch = async (network: any) => {
         try {
@@ -33,41 +22,44 @@ export function NetworkSelector() {
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="outline"
-                    className="flex items-center space-x-2 bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
+                    className="flex items-center space-x-2 bg-gray-800 border-gray-700 text-white hover:bg-gray-700 w-full lg:w-auto justify-between lg:justify-start"
                     disabled={isConnecting}
                 >
-                    <Globe className="w-4 h-4" />
-                    <span className="hidden sm:inline">{selectedNetwork.name}</span>
-                    <span className="sm:hidden">{selectedNetwork.isTestnet ? 'Test' : 'Main'}</span>
-                    {selectedNetwork.isTestnet && (
-                        <Badge variant="outline" className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs px-1 py-0">
-                            TEST
-                        </Badge>
-                    )}
-                    <ChevronDown className="w-4 h-4" />
+                    <div className="flex items-center space-x-2">
+                        <Globe className="w-4 h-4 flex-shrink-0" />
+                        <span className="hidden sm:inline truncate">{selectedNetwork.name}</span>
+                        <span className="sm:hidden text-sm">{selectedNetwork.isTestnet ? "Test" : "Main"}</span>
+                        {selectedNetwork.isTestnet && (
+                            <Badge
+                                variant="outline"
+                                className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs px-1 py-0 hidden sm:inline-flex"
+                            >
+                                TEST
+                            </Badge>
+                        )}
+                    </div>
+                    <ChevronDown className="w-4 h-4 flex-shrink-0" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-gray-900 border-gray-700">
+            <DropdownMenuContent className="bg-gray-900 border-gray-700 w-56">
                 {availableNetworks.map((network) => (
                     <DropdownMenuItem
                         key={network.chainId}
                         onClick={() => handleNetworkSwitch(network)}
-                        className={`cursor-pointer hover:bg-gray-800 ${selectedNetwork.chainId === network.chainId
-                            ? "bg-gray-800 text-white"
-                            : "text-gray-300"
+                        className={`cursor-pointer hover:bg-gray-800 ${selectedNetwork.chainId === network.chainId ? "bg-gray-800 text-white" : "text-gray-300"
                             }`}
                         disabled={isConnecting}
                     >
                         <div className="flex items-center justify-between w-full">
                             <div className="flex items-center space-x-2">
                                 {isConnected ? (
-                                    <Wifi className="w-4 h-4 text-green-400" />
+                                    <Wifi className="w-4 h-4 text-green-400 flex-shrink-0" />
                                 ) : (
-                                    <WifiOff className="w-4 h-4 text-gray-500" />
+                                    <WifiOff className="w-4 h-4 text-gray-500 flex-shrink-0" />
                                 )}
-                                <span>{network.name}</span>
+                                <span className="truncate">{network.name}</span>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-2 flex-shrink-0">
                                 {network.isTestnet && (
                                     <Badge variant="outline" className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs">
                                         TEST

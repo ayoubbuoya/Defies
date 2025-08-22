@@ -9,15 +9,25 @@ actix-cors = "0.7"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 dotenvy = "0.15"
-env_logger = "0.11"
 jsonwebtoken = "9"
 chrono = { version = "0.4", features = ["serde"] }
 base64 = "0.21"
-sha2 = "0.10"
 k256 = "0.13"
-ethers = "2"                                       # for EVM signature recovery
-alloy = { version = "0.1", features = ["full"] } 
-eyre = "0.6"                                   
-num-bigint = "0.4"   # For BigUint and BigInt
-num-rational = "0.4" # For Rational (if needed for floating point precision)
+ethers = "2"                                        # for EVM signature recovery
+alloy = { version = "0.1", features = ["full"] }
+eyre = "0.6"
+num-bigint = "0.4"                                  # For BigUint and BigInt
+num-rational = "0.4"                                # For Rational (if needed for floating point precision)
 reqwest = { version = "0.12", features = ["json"] }
+futures = "0.3"
+anyhow = "1.0.98"
+tracing = "0.1.41"
+thiserror = "1.0"
+dotenv = "0.15"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-actix-web = "0.7"
+sea-orm = { version = "0.12.0", features = [ "sqlx-postgres", "runtime-tokio-rustls" ] }
+tokio = { version = "1.38.0", features = ["full"] }
+mongodb = { version = "2.8", features = ["tokio-runtime"] }
+env_logger = "0.11.8"
+async-trait = "0.1.88"

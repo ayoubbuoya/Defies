@@ -1,8 +1,8 @@
-use chrono::{Utc, Duration};
-use jsonwebtoken::{encode, EncodingKey, Header};
-use serde::Serialize;
 use crate::config;
-use crate::domain::jwt::JwtEncoder;
+use crate::domain::repositories::jwt::JwtEncoder;
+use chrono::{Duration, Utc};
+use jsonwebtoken::{EncodingKey, Header, encode};
+use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct Claims {
@@ -24,7 +24,11 @@ impl JwtEncoder for Hs256Jwt {
             exp,
         };
 
-        encode(&Header::default(), &claims, &EncodingKey::from_secret(config::jwt_secret().as_bytes()))
-            .map_err(|_| "JWT encode failed".to_string())
+        encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(config::jwt_secret().as_bytes()),
+        )
+        .map_err(|_| "JWT encode failed".to_string())
     }
 }

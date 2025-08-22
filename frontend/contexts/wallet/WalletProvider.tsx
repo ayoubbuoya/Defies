@@ -1,13 +1,17 @@
 
 "use client"
-import { WalletStrategy, TxParams } from "./types"
+import { WalletStrategy, TxParams } from "../../types/wallet"
 import React, { useEffect, useState } from "react"
-import { WalletContext } from "./wallet-context"
-import { NETWORKS } from "./networks"
-import type { NetworkConfig, WalletContextType, WalletInfo } from "./types"
-import { getWalletStrategy } from "./Factory";
+import { NETWORKS } from "../../constants/networks"
+import type { NetworkConfig, WalletContextType, WalletInfo } from "../../types/wallet"
+import { getWalletStrategy } from "../../adapters/wallet/Factory";
+import GlobalLoader from "@/components/GlobalLoader"
+import { createContext, useContext } from "react"
+
+export const WalletContext = createContext<WalletContextType | undefined>(undefined)
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
+    const [isRestoring, setIsRestoring] = useState(true);
     const [isConnecting, setIsConnecting] = useState(false)
     const [showConnectionModal, setShowConnectionModal] = useState(false)
     const [availableWallets, setAvailableWallets] = useState<WalletInfo[]>([])
@@ -16,7 +20,48 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     const [walletType, setWalletType] = useState<string | null>(null)
     const [strategy, setStrategy] = useState<WalletStrategy | null>(null)
 
-    const isConnected = !!address && !!walletType
+    const isConnected = !!strategy && !!walletType
+
+    useEffect(() => {
+        // ✅ NEW effect – restore previous wallet connection
+        const restoreWallet = async () => {
+            setIsRestoring(true);
+            const storedToken = localStorage.getItem("authToken");
+            const storedWalletType = localStorage.getItem("walletType");
+
+            if (!storedToken || !storedWalletType) {
+                disconnectWallet();
+                setIsRestoring(false);
+                return;
+            }
+            try {
+                const wallet = getWalletStrategy(storedWalletType);
+
+                if (!wallet.isInstalled()) {
+                    disconnectWallet();
+                    return;
+                }
+
+                if (await wallet.restoreConnection() == false) return; // ✅ If the wallet can restore connection, do it
+
+                const address = await wallet.getAddress();
+
+                setStrategy(wallet);
+                setWalletType(storedWalletType);
+                setAddress(address);
+
+            } catch (error) {
+                console.error("Wallet restoration failed", error);
+                disconnectWallet();
+            }
+            finally {
+                setIsRestoring(false); // ✅ Done restoring
+            }
+        };
+
+        restoreWallet();
+    }, []);
+
 
     useEffect(() => {
         const checkWallets = () => {
@@ -87,6 +132,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             const { token } = await res.json();
             //store the token
             localStorage.setItem("authToken", token);
+            localStorage.setItem("walletType", walletId);
 
             setWalletType(walletId);
             setAddress(userAddress);
@@ -102,10 +148,12 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
     const disconnectWallet = () => {
         localStorage.removeItem("authToken");
-        setStrategy(null)
-        setAddress(null)
-        setWalletType(null)
+        localStorage.removeItem("walletType");
+        setStrategy(null);
+        setAddress(null);
+        setWalletType(null);
     }
+
 
     const sendTransaction = async (p: TxParams) => {
         if (!strategy) throw new Error("No wallet connected")
@@ -114,8 +162,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
 
 
+
+
     const value: WalletContextType = {
         isConnected,
+        isRestoring,
         address,
         walletType,
         isConnecting,
@@ -123,6 +174,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         availableWallets,
         selectedNetwork,
         availableNetworks: NETWORKS,
+        wallet: strategy,
         connectWallet,
         disconnectWallet,
         setShowConnectionModal,
@@ -130,5 +182,21 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         sendTransaction,
     }
 
-    return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>
+    if (isRestoring) {
+        return <GlobalLoader showProgress={true} />;
+    }
+
+    return (
+        <WalletContext.Provider value={value}>
+            {children}
+        </WalletContext.Provider>
+    )
+
+}
+
+
+export function useWallet() {
+    const context = useContext(WalletContext)
+    if (!context) throw new Error("useWallet must be used within a WalletProvider")
+    return context
 }
