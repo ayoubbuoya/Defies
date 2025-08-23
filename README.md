@@ -39,24 +39,8 @@ DeFies is an all-in-one DeFi platform that offers:
 
 DeFies is built with a modern, scalable architecture designed for reliability and performance:
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│                 │    │                  │    │                 │
-│   Frontend      │◄──►│   Rust Backend   │◄──►│   MCP Client    │
-│   (Next.js)     │    │  (API Gateway +  │    │   (AI Agent)    │
-│                 │    │   External APIs  |    |                 |
-|                 │    |    integration)  |    |                 |
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│                 │    │                  │    │                 │
-│  Smart Contracts│    │   Sei Blockchain │    │  MCP Server +   │
-│   (Solidity)    │    │      (EVM)       │    │  External APIs  │
-│                 │    │                  │    │                 │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-```
+### Component Diagram
+![Component Diagram](./assets/component-diagram.png)
 
 ## 📦 Project Structure
 
@@ -229,29 +213,15 @@ contracts/
 
 ## 🔄 Data Flow & Integration
 
-### 1. Frontend ↔ Rust Backend
-- RESTful API communication
-- Real-time price data and analytics
-- Pool information and liquidity data
-- Authentication and user management
+#### Pool Data Fetching Flow
+![Pool Data Flow](./assets/pool-data-flow.png)
 
-### 2. MCP Client ↔ Sei MCP Server
-- Direct communication with Sei blockchain tools
-- Balance queries and transaction data
-- Block and transaction monitoring
-- Network state information
+#### Liquidity Position Creation
+![Liquidity Flow](./assets/liquidity-activity.png)
 
-### 3. MCP Client ↔ Rust Backend
-- External API data integration
-- Price feeds from multiple sources
-- Pool analytics and calculations
-- Enhanced data processing
+#### AI Assistant Interaction
+![AI Chat Flow](./assets/ai-chat-activity.png)
 
-### 4. Smart Contracts ↔ Sei Blockchain
-- Direct DEX interactions
-- Liquidity position management
-- Token transfers and approvals
-- Fee collection and distribution
 
 ## 🚀 Quick Start
 
@@ -337,9 +307,9 @@ forge script script/DeployLiquidityManager.s.sol --rpc-url $SEI_RPC_URL --broadc
 
 ### 💎 Concentrated Liquidity Management
 - AI-suggested optimal price ranges
-- Real-time position monitoring
-- Automated rebalancing alerts
-- Comprehensive yield tracking
+- Liquidity position creation and management
+- Multi-DEX integration (DragonSwap, Sailor)
+- Price range configuration tools
 
 ## 🛠️ Development
 
