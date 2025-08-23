@@ -15,5 +15,5 @@ export const ERC20_ABI = [
     'function balanceOf(address account) external view returns (uint256)'
 ]
 
-export const LIQUIDITY_MANAGER_ADDRESS = process.env.LIQUIDITY_MANAGER_ADDRESS || '0x36BcE29839Db8DC5cbA2dC64200A729558baB8FD'
+export const LIQUIDITY_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_LIQUIDITY_MANAGER_ADDRESS || '0x36BcE29839Db8DC5cbA2dC64200A729558baB8FD'
 
