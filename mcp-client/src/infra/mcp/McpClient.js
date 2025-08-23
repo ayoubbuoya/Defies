@@ -19,8 +19,7 @@ export class McpClient {
     }
 
     try {
-      // ✅ Chemin corrigé selon package.json
-      const serverPath = path.resolve(__dirname, "../../../../../sei-js/packages/mcp-server/dist/esm/index.js");
+      const serverPath = path.resolve(__dirname, env.mcpUrl);
       
       console.log(`🔍 Attempting to connect to MCP server at: ${serverPath}`);
       
