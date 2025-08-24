@@ -18,14 +18,17 @@ export class MetaMaskWallet implements WalletStrategy {
         try {
             await this.provider.send("wallet_switchEthereumChain", [{ chainId: network.evmChainId }]);
         } catch (err: any) {
-            if (err.code === 4902) {
-                await this.provider.send("wallet_addEthereumChain", [{
+            if (err.error.code == 4902) {
+                const metaParams = {
                     chainId: network.evmChainId,
                     chainName: network.name,
                     nativeCurrency: network.currency,
-                    rpcUrls: [network.rpcEndpoint],
+                    rpcUrls: [network.rpcEndpointEvm],
                     blockExplorerUrls: [network.blockExplorer],
-                }]);
+                };
+                await this.provider.send("wallet_addEthereumChain", [metaParams]);
+
+                await this.provider.send("wallet_switchEthereumChain", [{ chainId: network.evmChainId }]);
             } else {
                 throw err;
             }
@@ -34,7 +37,6 @@ export class MetaMaskWallet implements WalletStrategy {
         this.signer = await this.provider.getSigner();
         return this.signer.getAddress();
     }
-
     async restoreConnection(): Promise<boolean> {
         if (!this.isInstalled()) return false;
         try {

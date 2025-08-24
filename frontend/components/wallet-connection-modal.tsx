@@ -157,7 +157,7 @@ export function WalletConnectionModal() {
             <div className="flex items-start space-x-2">
               <div className="text-blue-400">ℹ️</div>
               <div>
-                <strong className="text-blue-400">Sei Network Setup:</strong> DeFies will not automatically add Sei Pacific-1 network to your wallet with the correct RPC endpoints and chain configuration.
+                <strong className="text-blue-400">Sei Network Setup:</strong> DeFies will automatically add Sei Pacific-1 network to your wallet with the correct RPC endpoints and chain configuration.
               </div>
             </div>
             <div className="flex items-start space-x-2 mt-2">
