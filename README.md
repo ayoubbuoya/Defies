@@ -6,7 +6,18 @@
   <p><strong>"Making DeFi Easy, Accessible, and Intelligent for Everyone"</strong></p>
   
   <p>
-    <a href="https://x.com/SeiDefies">🐦 Twitter</a>
+     <a href="https://x.com/SeiDefies" target="_blank">
+    <img src="https://img.shields.io/badge/🐦_Twitter-Follow-1DA1F2?style=for-the-badge" alt="Twitter">
+  </a>
+    <a href="https://defies.vercel.app/" target="_blank">
+      <img src="https://img.shields.io/badge/🌐_Website-Live-blue?style=for-the-badge" alt="Live Website">
+    </a>
+    <a href="https://www.youtube.com/watch?v=JVzZxBK74DI&t=31s" target="_blank">
+      <img src="https://img.shields.io/badge/🎥_Demo-YouTube-red?style=for-the-badge" alt="Demo Video">
+    </a>
+    <a href="https://seitrace.com/address/0x36BcE29839Db8DC5cbA2dC64200A729558baB8FD?chain=pacific-1" target="_blank">
+      <img src="https://img.shields.io/badge/📋_Contract-Sei_Pacific-green?style=for-the-badge" alt="Smart Contract">
+    </a>
   </p>
   
   <br>
@@ -201,6 +212,11 @@ contracts/
     ├── forge-std/
     └── openzeppelin-contracts/
 ```
+#### 🔗 Deployed Contract Information
+**Network:** Sei Pacific-1 (EVM)  
+**DeFies LiquidityManager:** [`0x36BcE29839Db8DC5cbA2dC64200A729558baB8FD`](https://seitrace.com/address/0x36BcE29839Db8DC5cbA2dC64200A729558baB8FD?chain=pacific-1)
+
+View contract details, transactions, and verification status on SeiTrace explorer.
 
 **Key Features:**
 - Optimized gas usage for Sei blockchain

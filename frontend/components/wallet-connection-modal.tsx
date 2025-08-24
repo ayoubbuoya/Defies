@@ -5,7 +5,7 @@ import { useWallet } from "@/contexts/wallet/WalletProvider"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,  // Add this import
+  DialogDescription,
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog"
@@ -15,10 +15,10 @@ import { Badge } from "@/components/ui/badge"
 import { Loader2, ExternalLink, AlertCircle, CheckCircle } from "lucide-react"
 
 const walletDownloadLinks = {
-  compass: "https://chrome.google.com/webstore/detail/compass-wallet/anokgmphncpekkhclmingpimjmcooifb",
-  keplr: "https://chrome.google.com/webstore/detail/keplr/dmkamcknogkgcdfhhbddcghachkejeap",
-  leap: "https://chrome.google.com/webstore/detail/leap-cosmos-wallet/fcfcfllfndlomdhbehjjcoimbgofdncg",
-  metamask: "https://chromewebstore.google.com/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn?utm_source=www.google.com",
+  metamask: "https://chromewebstore.google.com/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn",
+  walletconnect: "https://walletconnect.com/",
+  coinbase: "https://chrome.google.com/webstore/detail/coinbase-wallet-extension/hnfanknocfeofbddgcijnmhnfnkdnaad",
+  trustwallet: "https://chrome.google.com/webstore/detail/trust-wallet/egjidjbpglichdcondbcbdnbeeppgdph"
 }
 
 export function WalletConnectionModal() {
@@ -68,13 +68,13 @@ export function WalletConnectionModal() {
       >
         <DialogHeader>
           <DialogTitle className="text-white text-center text-xl">
-            Connect Cosmos Wallet
+            Connect to Sei Network
           </DialogTitle>
           <DialogDescription
             id="wallet-dialog-description"
             className="text-sm text-gray-400 text-center"
           >
-            Choose a wallet to connect to the Cosmos ecosystem. Your private keys never leave your wallet.
+            Choose a wallet to connect to Sei EVM. DeFies will automatically configure the Sei network for you.
           </DialogDescription>
         </DialogHeader>
 
@@ -130,8 +130,8 @@ export function WalletConnectionModal() {
               ))
             ) : (
               <div className="text-center py-6">
-                <div className="text-gray-400 mb-4">No Cosmos wallets detected</div>
-                <div className="text-sm text-gray-500 mb-4">Please install one of the supported wallets:</div>
+                <div className="text-gray-400 mb-4">No EVM wallets detected</div>
+                <div className="text-sm text-gray-500 mb-4">Please install MetaMask or another EVM-compatible wallet:</div>
                 <div className="space-y-2">
                   {notInstalledWallets.map((wallet) => (
                     <Button
@@ -154,8 +154,18 @@ export function WalletConnectionModal() {
           </div>
 
           <div className="text-xs text-gray-400 bg-gray-800 p-4 rounded-lg border border-gray-700">
-            <strong className="text-green-400">🔒 Security Notice:</strong> This application is non-custodial. We never
-            store or have access to your private keys.
+            <div className="flex items-start space-x-2">
+              <div className="text-blue-400">ℹ️</div>
+              <div>
+                <strong className="text-blue-400">Sei Network Setup:</strong> DeFies will not automatically add Sei Pacific-1 network to your wallet with the correct RPC endpoints and chain configuration.
+              </div>
+            </div>
+            <div className="flex items-start space-x-2 mt-2">
+              <div className="text-green-400">🔒</div>
+              <div>
+                <strong className="text-green-400">Security:</strong> This application is non-custodial. We never store or have access to your private keys.
+              </div>
+            </div>
           </div>
         </div>
       </DialogContent>
