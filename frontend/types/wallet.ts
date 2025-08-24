@@ -25,7 +25,6 @@ export interface NetworkConfig {
 }
 
 export interface WalletContextType {
-    wallet: WalletStrategy | null
     isConnected: boolean
     isRestoring: boolean
     address: string | null
@@ -35,9 +34,12 @@ export interface WalletContextType {
     availableWallets: WalletInfo[]
     selectedNetwork: NetworkConfig
     availableNetworks: NetworkConfig[]
+    wallet: WalletStrategy | null
+    connectionError: string | null
     connectWallet: (walletId: string) => Promise<void>
     disconnectWallet: () => void
     setShowConnectionModal: (show: boolean) => void
+    setConnectionError: (error: string | null) => void
     switchNetwork: (network: NetworkConfig) => Promise<void>
     sendTransaction: (p: TxParams) => Promise<any>
 }

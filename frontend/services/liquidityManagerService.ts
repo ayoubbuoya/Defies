@@ -86,10 +86,8 @@ export class LiquidityManagerService {
             const requiredAmount0 = ethers.parseUnits(amount0, Number(pool.token0.decimals))
 
             if (currentAllowance0 < requiredAmount0) {
-                console.log(`Approving ${amount0} ${pool.token0.symbol}...`)
                 const tx0 = await this.approveToken(pool.token0.address, amount0, Number(pool.token0.decimals))
                 await tx0.wait() // Wait for confirmation
-                console.log(`${pool.token0.symbol} approval confirmed`)
             }
         }
 
@@ -99,10 +97,8 @@ export class LiquidityManagerService {
             const requiredAmount1 = ethers.parseUnits(amount1, Number(pool.token1.decimals))
 
             if (currentAllowance1 < requiredAmount1) {
-                console.log(`Approving ${amount1} ${pool.token1.symbol}...`)
                 const tx1 = await this.approveToken(pool.token1.address, amount1, Number(pool.token1.decimals))
                 await tx1.wait() // Wait for confirmation
-                console.log(`${pool.token1.symbol} approval confirmed`)
             }
         }
     }
