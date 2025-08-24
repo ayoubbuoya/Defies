@@ -22,8 +22,7 @@ const walletDownloadLinks = {
 }
 
 export function WalletConnectionModal() {
-  const { showConnectionModal, setShowConnectionModal, connectWallet, isConnecting, availableWallets } = useWallet()
-  const [connectionError, setConnectionError] = useState<string | null>(null)
+  const { showConnectionModal, setShowConnectionModal, connectWallet, isConnecting, availableWallets, connectionError, setConnectionError } = useWallet()
   const [connectingWalletId, setConnectingWalletId] = useState<string | null>(null)
 
   const handleConnect = async (walletId: string) => {
@@ -80,12 +79,43 @@ export function WalletConnectionModal() {
 
         <div className="space-y-6">
           {connectionError && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start space-x-2">
-              <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-red-400">{connectionError}</div>
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg space-y-3">
+              <div className="flex items-start space-x-3">
+                <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  {connectionError.includes("cancelled") ? "❌" :
+                    connectionError.includes("not installed") ? "🦊" :
+                      connectionError.includes("network") ? "🔗" :
+                        connectionError.includes("Authentication") ? "🔐" : "⚠️"}
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-red-400 font-medium mb-1">
+                    {connectionError.includes("cancelled") ? "Connection Cancelled" :
+                      connectionError.includes("not installed") ? "MetaMask Not Found" :
+                        connectionError.includes("network") ? "Network Setup Issue" :
+                          connectionError.includes("Authentication") ? "Authentication Failed" :
+                            "Connection Failed"}
+                  </h4>
+                  <p className="text-red-300 text-sm mb-3">{connectionError}</p>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setConnectionError(null)}
+                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md transition-colors"
+                    >
+                      Try Again
+                    </button>
+                    {connectionError.includes("not installed") && (
+                      <button
+                        onClick={() => window.open("https://metamask.io/download/", "_blank")}
+                        className="px-3 py-1.5 border border-red-500/30 text-red-400 hover:bg-red-500/10 text-sm rounded-md transition-colors"
+                      >
+                        Install MetaMask
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
-
           <div className="space-y-3">
             {installedWallets.length > 0 ? (
               installedWallets.map((wallet) => (

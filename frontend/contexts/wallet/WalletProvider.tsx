@@ -19,6 +19,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     const [address, setAddress] = useState<string | null>(null)
     const [walletType, setWalletType] = useState<string | null>(null)
     const [strategy, setStrategy] = useState<WalletStrategy | null>(null)
+    const [connectionError, setConnectionError] = useState<string | null>(null)
+
 
     const isConnected = !!strategy && !!walletType
 
@@ -102,9 +104,10 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
     const connectWallet = async (walletId: string) => {
         setIsConnecting(true);
+        setConnectionError(null);
         try {
             const wallet = getWalletStrategy(walletId);
-            if (!wallet.isInstalled()) throw new Error("Wallet not installed");
+            if (!wallet.isInstalled()) throw new Error("MetaMask is not installed. Please install MetaMask and refresh the page.");
 
             const userAddress = await wallet.connect(selectedNetwork);
             const authMessage = `Sign this message to authenticate.\nTime: ${Date.now()}`;
@@ -124,11 +127,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
                 })
             });
 
-            if (!res.ok) {
-                alert("Auth failed");
-                return;
-            }
-
             const { token } = await res.json();
             //store the token
             localStorage.setItem("authToken", token);
@@ -138,8 +136,22 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             setAddress(userAddress);
             setShowConnectionModal(false);
             setStrategy(wallet);
-        } catch (err) {
-            alert("Auth failed");
+        } catch (err: any) {
+
+            // Set user-friendly error messages
+            if (err.message?.includes("rejected") || err.message?.includes("denied")) {
+                setConnectionError("Connection was cancelled. Please try again when you're ready.");
+            } else if (err.message?.includes("not installed")) {
+                setConnectionError("MetaMask is not installed. Please install MetaMask and refresh the page.");
+            } else if (err.message?.includes("Authentication failed")) {
+                setConnectionError("Authentication failed. Please make sure you signed the message correctly.");
+            } else if (err.message?.includes("network")) {
+                setConnectionError("Network configuration failed. Please try again or add Sei network manually.");
+            } else if (err.message?.includes("fetch")) {
+                setConnectionError("Unable to connect to server. Please check your internet connection and try again.");
+            } else {
+                setConnectionError(err.message || "Failed to connect wallet. Please try again.");
+            }
         } finally {
             setIsConnecting(false);
         }
@@ -175,9 +187,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         selectedNetwork,
         availableNetworks: NETWORKS,
         wallet: strategy,
+        connectionError,
         connectWallet,
         disconnectWallet,
         setShowConnectionModal,
+        setConnectionError: (error: string | null) => setConnectionError(error),
         switchNetwork,
         sendTransaction,
     }

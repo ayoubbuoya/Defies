@@ -9,7 +9,6 @@ export const useCurrentPrice = (token0: string, token1: string) => {
     const fetchCurrentPrice = async (token0: string, token1: string) => {
         // Don't fetch if either token is empty or undefined
         if (!token0 || !token1 || token0.trim() === '' || token1.trim() === '') {
-            console.log('Skipping price fetch - empty tokens:', { token0, token1 })
             setLoading(false)
             setError(null)
             setCurrentPrice(undefined)
@@ -19,12 +18,10 @@ export const useCurrentPrice = (token0: string, token1: string) => {
         try {
             setLoading(true)
             setError(null)
-            console.log('Fetching price for:', token0, '/', token1)
 
             const price = await priceHistoryService.fetchCurrentPrice(token0, token1)
             setCurrentPrice(price.close) // Assuming 'close' is the current price
         } catch (err) {
-            console.error('Error fetching current price:', err)
             setError(err instanceof Error ? err.message : 'Failed to fetch current price')
         } finally {
             setLoading(false)
