@@ -8,13 +8,14 @@ import "./libraries/LiquidityAmounts.sol";
 import "./libraries/TickMath.sol";
 import "forge-std/console.sol";
 import "./interfaces/INonfungiblePositionManager.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title LiquidityManager
  * @dev A contract that manages liquidity across multiple pools
  * @notice This contract allows users to mint and burn liquidity positions across different pools
  */
-contract LiquidityManager {
+contract LiquidityManager is Ownable {
     // Events
     event LiquidityMinted(
         address indexed pool,
@@ -42,6 +43,10 @@ contract LiquidityManager {
     error InsufficientLiquidity();
     error TransferFailed();
     error SlippageExceeded();
+
+    constructor() Ownable(msg.sender) {
+        // Contract deployer becomes the owner
+    }
 
     // Struct to hold mint parameters (kept for backward compatibility in other functions)
     struct MintParams {
@@ -495,7 +500,7 @@ contract LiquidityManager {
     }
 
     /**
-     * @notice Emergency function to recover stuck tokens
+     * @notice Emergency function to recover stuck tokens - OWNER ONLY
      * @param token The token address to recover
      * @param to The recipient address
      * @param amount The amount to recover
@@ -504,9 +509,10 @@ contract LiquidityManager {
         address token,
         address to,
         uint256 amount
-    ) external {
-        // In a production environment, this should have proper access control
-        // For now, anyone can call it - add onlyOwner modifier in production
+    ) external onlyOwner {
+        require(token != address(0), "Invalid token address");
+        require(to != address(0), "Invalid recipient address");
+        require(amount > 0, "Amount must be greater than 0");
         _safeTransfer(token, to, amount);
     }
 
